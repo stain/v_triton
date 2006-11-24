@@ -1,0 +1,520 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM Change Log</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBM Change Log</h1>
+
+<pre>
+11-May-1992  Initial general release.
+
+29-Nov-1993  Supplied to IBM OS/2 Developer Connection.
+
+01-Aug-1994  Submitted to Internet hobbes.nmsu.edu.
+
+10-Jan-1995  Added gbm_version(), better error checking, const's.
+             Added clarification on LZW 'software patent'.
+             Submitted to hobbes.nmsu.edu.
+
+16-Jan-1995  Added support for Portrait files (.CVP files).
+
+21-Mar-1995  Fixed palettes in XIMG GemRas files (thanks Eero).
+             Fixed GIF writing transcol=edge, &amp; reading local colour tables.
+             Added GBMLOGO.EXE to ease use of MAKELOGO.EXE on DevCon CD 6.
+
+16-May-1995  Distribution now uses InfoZIP ZIP.EXE, not PKZIP.EXE 2.04g.
+             Added Product Information dialog box to GBMV2.EXE.
+             Fixed GBMLOGO.EXE error message trap for non 640x400 bitmaps.
+
+25-Mar-1996  Improved Bitmap reader to tolerate bad #colours in header.
+             Fixed reading XBitmaps with digits in their identifiers.
+             Added support for ilace flag on GIF output.
+
+01-Apr-1996  Fixed reading XBitmaps with other chars in their identifiers.
+             Fixed interlaced GIF support.
+             Added Win32 makefile and compilability.
+             Added ability to cause GBM.DLL to use user defined I/O funcs.
+             Added accessibility of I/O funcs used by GBM.
+
+16-Apr-1996  Applied fixes found by Wonkoo in 1/4/1996 release.
+             Increase warning levels for OS/2 compile and cleaned up source.
+             Added /Os- to work around C-Set++ bug.
+
+29-Apr-1996  Applied fix to GIF/TIFF readers found by David Wendt.
+
+19-Jun-1996  Applied fixes found by Ralf and Andreas.
+             Fixed RLE4 Bitmap decoder (thanks for Marc for bug report).
+
+28-Oct-1996  Changed over from IBM C-Set++ to IBM VisualAge C++ with CTC305.
+             Fixed 16bpp display bug in GBMV2.EXE.
+
+18-Nov-1996  Added darkfg option on 1bpp BMP writing.
+             Fixed printout of 1bpp bitmaps problem.
+
+01-Feb-1997  Changed colour-&gt;greyscale coefficients, as Wonkoo suggested.
+             Added JPEG support.
+             Changed documentation to HTML.
+             Submitted to Internet hobbes.nmsu.edu.
+
+01-May-1998  Added initial Linux port.
+             Support GIF files without EOI code in compressed data.
+             Included source for OS/2 PM Scroller control.
+
+12-Jul-1998  Fixed writing 1bpp PCXs with reverse palettes (ta Wonkoo).
+             Fixed OS/2 c0000005 Trap by increasing stack size (ta Gunter).
+
+01-Jan-1999  Added OS/2 _System Gbm_ entrypoints.
+             Added support for filenames starting with -, via -- convention.
+             Initial port to 32 bit DOS, via Watcom C/C++ and CauseWay.
+
+20-Jan-1999  Fixed reading of .pgm palettes (ta Wonkoo Kim).
+             Fixed 2 low probability bugs in LZW encoders in GIF and TIFF.
+
+   ?/?/1999  Change to gbmpgm.c and gbmppm.c to use \n in header.
+             Splitting out of OS/2 specific stuff to seperate package.
+             Fixed 32 bit DOS port to work properly with JPEG support.
+
+21-Nov-1999  Fixed reading OS/2 bitmaps with &lt; 2**N colours.
+
+04-Jan-2000  Fixed reading of 24 bit GemRas image files.
+
+12-May-2000  Improved TIFF and GIF LZW readers corrupt data detection.
+             Improved TIFF LZW decompressor to work if EOI missing (ta Doug).
+
+31-Dec-2000  A few minor tweaks to make source more friendly to Mac compiler.
+             Basically factored in Karl Timmermann suggestions, fixed a few
+             minor signed/unsigned char problems, and removed some #includes.
+
+05-Feb-2001  gbmsize -a option, Jeroen Mosterts idea.
+
+12-Feb-2001  gbmbpp -c palNbpp options to map to user defined palette.
+
+18-Feb-2004  Added 4x4x4 truncate, halftone and error-diffuse functions.
+             Added gbmbpp -m 4x4x4 option.
+
+24-Aug-2005  Heiko Nitzsche:
+             Added PNG support via Libpng 1.2.8 and Zlib 1.2.3.
+
+28-Sep-2005  Heiko Nitzsche: GBM version 1.30
+
+             TIF support:
+               Replaced original TIF support by Libtiff 3.7.3.
+               This adds many additional compression schemes like LZW (with, w/o predictor),
+               PackBits, JPEG, Deflate, CCITT and more. Simple CMYK (32, 64 bpp) import is
+               available. Now also 32 bpp (with alpha channel), 48 bpp and 64 bpp (with alpha
+               channel) import and export is available. The alpha channel is available to the
+               application if option ext_bpp is used for import.
+               Single bitmaps of multipage TIFFs can be extracted.
+
+             PNG support:
+               PNG support from previous release got some fixes and was extended.
+               Now also 16 gray level, 32 (with alpha channel), 48 and 64 bpp (with alpha channel)
+               import and export is available. Transparency and user defined background is
+               supported as well. The alpha channel is available to the application if option
+               ext_bpp is used for import.
+
+             For backward compatibility the extended color depths must be explicitly enabled
+             by the client (see option ext_bpp) otherwise bitmaps downsampled to 24 bpp are
+             provided.
+
+             GBM command line tools:
+               The following tools have been extended to support 32, 48 and 64 bpp:
+               gbmsize, gbmhdr, gbmref, gbmsub, gbmgamma
+
+               A new format converter gbmconv has been added (also supports extended bpp).
+
+
+02-Oct-2005  Heiko Nitzsche: GBM version 1.31
+
+             PPM support: (algorithms replaced)
+               Can now also read and write 48 bpp RGB files.
+               Reading a bitmap from a multipage file is now possible.
+
+12-Dec-2005  Heiko Nitzsche: GBM version 1.32
+
+             TIF support:
+               Update to Libtiff 3.7.4
+               Fix decoding of separated RGB tiffs
+               Fix decoding of non-separated CMYK tiffs (8/16 bits per channel)
+
+             GBM File Dialog:
+               Redesign to match standard file dialog (eComStation)
+               Add bitmap preview
+
+08-Mar-2006  Heiko Nitzsche: GBM version 1.35
+
+             Reworked GBM documentation.
+
+             OS/2 compiler support extended:
+               GBM.DLL, command line tools, GBM file dialog, GBMV and GBMV2 can
+               now also be compiled with Open Watcom 1.4. IBM Visual Age C++ for
+               OS/2 is still supported. Binaries created with Open Watcom are
+               fully compatible with older VAC builds (_Optlink is supported).
+               The makefiles use nmake syntax but you can use &quot;wmake /ms /f makefile.wat&quot;
+               to compile with Open Watcom's wmake.
+
+             Regression tests:
+               A simple set of regression tests has been created. See gbmtest directory.
+
+             BMP support:
+               Add support for reading RLE24 compressed bitmaps
+
+             Code changes:
+               All bitmap format descriptions have been moved to gbmdesc.h to
+               support simplified localization.
+
+             API extensions:
+               New APIs have been added:
+               1. gbm_restore_io_setup()
+               2. gbm_read_imgcount()
+               3. Compiler independent modes for gbm_io_open() and gbm_io_create()
+                  are now provided. Use only the new GBM_O_* modes for new applications!
+                  The defined values are backward compatible to VAC++ 3.0 to keep
+                  compatibility with older applications.
+               4. gbm_io_lseek() should only be used with the new compiler independent
+                  origin defines GBM_SEEK_*. The new definitions are backward compatible
+                  to VAC++ 3.0 to keep compatibility with older applications.
+
+               The import library gbm.lib does reflect the extended API.
+               If your application has to be compatible to GBM.DLL releases
+               up to 1.32, you should link against gbmorg.lib. New APIs
+               will not be available then. You should still use the new defines.
+
+               Supported multipage image formats: BMP, GIF, TIF, PPM, SPR
+               (For all other image formats, the header is tested first and
+               on successful detection, 1 is reported.)
+
+             GBM command line tools:
+               gbmhdr is now able to display all bitmaps of multipage images.
+               The reported index can be used to reference a specific bitmap
+               by using option index=n in all command line tools.
+
+               Supported multipage image formats: BMP, GIF, TIF, PPM, SPR
+
+
+24-Mar-2006  Heiko Nitzsche: GBM.DLL 1.36, GBMDLG/GBMV2 1.23
+
+             GBM.DLL:
+             * TIF support:
+               Update to Libtiff 3.8.2
+               Fix JPEG decoding via RGBA reader for YCbCr JPEGs
+
+             GBM File Dialog:
+             * Fix bitmap preview, sometimes the bitmap was not shown due to a scaling issue
+
+
+29-Mar-2006  Heiko Nitzsche: GBM version 1.37, GBMDLG/GBMV2 1.24
+
+             GBM.DLL:
+             * Some small performance optimizations for color mapping in TIF, PNG and PPM
+               when importing/exporting.
+
+             GBM File Dialog:
+             * Bitmap preview enhanced
+               If options are entered into options field and the field loses focus,
+               they are now interpreted for the preview. ext_bpp is supported as well
+               but because OS/2-PM only supports 24 bpp the bitmap is downsampled
+               for the preview.
+             * Bitmap info beside preview image extended to show also number of
+               contained pages if a recent GBM.DLL is found.
+             * Fix dialog resource issue with IBM RC compiler (get rid of CTLDATA at VALUESET)
+               which caused a crash with IBM VAC compiled GBMDLG.DLL. OpenWatcom wrc
+               didn't cause any issues.
+
+
+29-Apr-2006  All binaries can now also be compiled with OpenWatcom 1.5.
+
+             <b>NEW:</b> GBMDLGRX 1.0, a REXX adapter DLL for the GBM File Dialog
+
+             GBM documentation
+             * Incorporated changes due to fix for command line parsing
+             * Added documentation about gbmver
+             * Added new GBM File Dialog REXX support on OS/2 and eCS (GBMDLGRX)
+
+             GBM.DLL 1.38
+             * Fix some issues to support OpenWatcom 1.5 compiler upgrade
+
+             GBM command line tools
+             * gbmver:
+               - The tool now also checks for GBMDLG.DLL (GBM File Dialog).
+               - Now additionally a directory can be specified where the tool
+                 looks for GBM.DLL and GBMDLG.DLL.
+
+             * gbmgamma:
+               - Fix a rare case for bitmaps with >24bpp. If no map option is
+                 specified the written file could be partly or completely black.
+
+             * gbmhdr:
+               Added general mechanism to resolve shell provided file names
+               via regular expressions on OS/2 due to inclusion of OpenWatcom
+               support (which doesn't have setargv.obj like IBM VAC++).
+               Now calls like &quot;gbmhdr *.jpg *.png&quot; work also with the OpenWatcom
+               binaries. The new mechanism additionally allows binding options
+               to each file template.
+               Example: gbmhdr *.bmp,index=3 *.tif,index=1
+
+             * Fix issue with comma separation between file and options.
+               The tools couldn't read bitmap files that have a comma in
+               the filename (comma is used as option separator).
+               Now a filename can be specified with quotes and thus allows
+               clearly separating it from the options.
+               Example: gbmhdr &quot;\&quot;file with ,*.bmp\&quot;,options&quot;
+               (\&quot; is necessary because the shell otherwise removes the &quot;,
+                the other &quot; is non-escaped quote is used by the shell to group
+                parameters with spaces (like a filename) to one arguments)
+
+               Recommendation is to always use this new syntax. See also
+               the usage description available from the tools for specific details.
+
+             GBMDLG/GBMV2 1.25
+             * Fix gbmwpobj.cmd which didn't run on some systems.
+             * Fix GBM File Dialog issue which prevent that the options
+               entered by the user are interpreted.
+             * Fix some smaller issues in GBM File Dialog found during
+               development of the REXX wrapper library.
+             * Fix issue with comma separation between file and options.
+               The tools couldn't read bitmap files that have a comma in
+               the filename (comma is used as option separator).
+               Now a filename can be specified with quotes and thus allows
+               clearly separating it from the options.
+               Example: gbmv &quot;\&quot;file with,xyz.bmp\&quot;,options&quot;
+               (\&quot; is necessary because the shell otherwise removes the &quot;,
+                the other &quot; is non-escaped quote is used by the shell to group
+                parameters with spaces (like a filename) to one arguments)
+
+               Recommendation is to always use this new syntax.
+               The included REXX script gbmwpobj.cmd for creating the WPS objects
+               has been updated and will take care of this.
+
+
+16-May-2006  <b>NEW:</b> GBMRX 1.0, a REXX adapter DLL for GBM.DLL
+             * Supports full feature set of GBM.DLL except I/O remapping
+             * Requires GBM.DLL 1.35 for using all features but also
+               works with older version (> 1.09) with reduced feature set.
+               (no possibility to query the number of pages contained in the file)
+
+             GBMDLGRX.DLL 1.01
+             * Add function to query module version
+
+             GBM.DLL 1.39
+             * PNG support:
+               Upgrade to Libpng 1.2.10
+
+             GBM command line tools
+             * Add more restrict checking for completeness when using
+               the new syntax for specifying filename with options.
+             * gbmver
+               Verify detected/specified GBM.DLL/GBMDLG.DLL/GBMRX.DLL/GBMDLGRX.DLL
+               version by looking now at all exported functions and give some hints
+               about backward compatibility to applications.
+               As the calling convention of the functions and the parameters
+               cannot be queried from the OS, there is still a small amount
+               of uncertainty.
+
+             GBMV/GBMV2 1.26, GBMLOGO, GBMVFSA
+             * Add more restrict checking for completeness when using
+               the new syntax for specifying filename with options.
+
+
+27-May-2006  GBM.DLL 1.40
+             * Add support for reading Windows 16bpp and 32bpp
+               BI_RGB and BI_BITFIELDS encoded bitmaps (BMP). Writing
+               them will not be supported as Windows can also read
+               standard 24bpp BMPs without this strange encoding.
+               Also these formats mostly aren't supported by other platforms.
+             * Fix the strange handling of 1bpp bitmaps. Now the colour
+               palette is honored just as in all other formats.
+             * Protect all readers and writer against illegal colour depth
+               requests (gbm_read_palette, gbm_read_data, gbm_write)
+             * Obsolete format codes GBM_FT_R16 and GBM_FT_W16 as these are not
+               unique interpretable. Use 24bpp or 48bpp color depths instead.
+               There has been no codec that used them so far anyway.
+
+             GBM command line tools
+             * gbmhdr:
+               - Dynamically load gbm.dll for querying image page count
+                 to allow it to load also with older gbm.dll versions
+                 on OS/2.
+
+             GBMV/GBMV2 1.27
+             * They got new program icons (created by David Graser)
+             * Fix display of 1bpp color bitmap for which no RGB color
+               table was created and thus only the closest pure color
+               was used. This caused wrong colors in display but had
+               no effect on bitmap operations.
+             * Fix makefile issue with English IPFC country code. It's now 001.
+
+             GBM File Dialog
+             * Fix preview of 1bpp bitmaps
+             * Updated online help to reflect newly supported BMP formats
+             * Fix makefile issue with English IPFC country code. It's now 001.
+
+
+24-Jun-2006  GBM.DLL 1.41, GBM command line tools, GBMV/GBMV2 1.28, GBMDLG, GBM REXX 1.01
+             * Use default structure packing internally but keep externally used
+               GBM/GBMDLG struct data 4 byte aligned to keep binary compatibility.
+               OpenWatcom compiled binaries are now internally using compiler
+               pentium optimized data packing (8 byte) to improve performance a bit.
+
+             GBM.DLL 1.41
+             * <b>NEW:</b> extended PPM support
+              (24/48 bpp, types: ascii P3 and binary type P6, multipage type P6)
+             * <b>NEW:</b> extended PGM support
+              (8 bpp    , types: ascii P2 and binary type P5, multipage type P5)
+             * <b>NEW:</b> new PBM support
+              (1 bpp    , types: ascii P1 and binary type P4, multipage type P4)
+             * <b>NEW:</b> new PNM support
+              (same subformats as PBM/PGM/PPM, multipage PNMs)
+             * shorten BMPs long description to simply "OS/2 / Windows bitmap"
+             * Modified compiler options for OpenWatcom build after profiling.
+               Performance benefits are between 5 and 20 percent depending on the
+               image format and the specified options. Overall performance on my
+               Athlon64 3000+ is now close to the IBM VAC build.
+
+             GBM command line tools
+             * Modified compiler options for OpenWatcom build after profiling.
+             * gbmconv has now built-in conversion time measurement. It can be
+               activated by enabling #define MEASURE_TIME at the beginning of
+               gbmconv.c.
+
+             GBMV/GBMV2 1.28 and GBM File Dialog
+             * Modified compiler options for OpenWatcom build after profiling.
+
+             GBM File Dialog
+             * Updated online help to reflect newly supported formats
+               PBM, PGM, PPM, PNM
+
+             GBM documentation
+             * Added documentation about new formats PBM, PGM, PPM and PNM
+             * Sections for developers on how to use GBM.DLL, GBMDLG.DLL,
+               GBMRX.DLL and GBMDLGRX.DLL in their own programs completed.
+
+
+27-Jun-2006  <b>NEW:</b> GBM plugin for Lucide (LUGBM.DLL version 1.0 beta 1)
+             * Initial public beta
+
+
+30-Jun-2006  GBM plugin for Lucide (LUGBM.DLL version 1.0 beta 2)
+             * Fixes for the most urgent issues
+               - file extension list too long for file dialog (only keep the first extension)
+                 which causes a cutted list of shown file extensions and a crash on pressing
+                 Cancel in the file dialog (buffer overflow in Lucide)
+             * Add error message reporting to load_file())
+
+
+16-Jul-2006  <b>NEW:</b> GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey
+                  (NPGBM.DLL version 1.00)
+
+             <b>NEW:</b> GBM plugin for Lucide (LUGBM.DLL version 1.00 final)
+             * It requires Lucide 1.2 due to plugin API changes
+             * Added document info
+             * Added rotated rendering
+             * Added delayed loading of bitmap data (on user request)
+             * Support transparent caching for fast scrolling of a scaled view
+
+             GBM.DLL 1.42
+             * Upgrade to Libpng 1.2.12 due to a possible security issue.
+               For GBM.DLL now all the relevant code parts have been stripped
+               (no impact on functionality, just debug reporting).
+             * Modify OpenWatcom compiler options to fix random crashes due to
+               bad stack. This was introduced with GBM.DLL 1.41 which had been
+               speed optimized.
+               GBM.DLL 1.41 should no longer be used and replaced by version 1.42.
+
+            GBM tools for PM
+            * No new version number but recompiled with slightly modified
+              OpenWatcom compiler options to improve stability.
+
+
+31-Jul-2006: GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey (NPGBM.DLL version 1.10)
+
+             * Added fullscreen mode viewer with a load of features
+               - menus, popup menu, scrollers
+               - variable scaled preview
+               - transformations: mirror/transpose/rotate
+               - multipage navigation
+               - save the shown page to any GBM supported bitmap file format
+               - uses GBM File Dialog if found, otherwise OS/2 File Dialog is used
+               - English and German localized with autodetection via LANG variable
+
+             * Added embedded mode viewer with reduced functionality of
+               fullscreen mode viewer
+               - popup menu
+               - transformations: mirror
+               - multipage navigation
+               - save the shown page to any GBM supported bitmap file format
+               - uses GBM File Dialog if found, otherwise OS/2 File Dialog is used
+               - printing of embedded bitmaps is supported on Mozilla/Firefox/SeaMonkey
+               - English and German localized with autodetection via LANG variable
+
+             * Now supports dynamic lookup of GBM.DLL either via LIBPATH
+               or look into the directory where NPGBM.DLL is located.
+               This allows having GBM.DLL beside NPGBM.DLL in the Mozilla
+               plugin directory. This mechanism does not work with GBMDLG.DLL.
+
+
+             GBM for Lucide 1.10 (LUGBM.DLL)
+             * Save loaded bitmap in any GBM supported format if it has only one page
+               (GBM does not support multipage save)
+             * Remove code for rendering to a buffer, rendering is now always via HPS
+             * Sync to latest common code shared with the Mozilla plugin
+             * Now supports dynamic lookup of GBM.DLL either via LIBPATH
+               or look into the directory where lugbm.dll is located.
+
+
+             GBM.DLL 1.43
+             * BMP support:
+               Prevent possible buffer overflows in 4,8,24 bpp RLE decoders due
+               to badly encoded bitmap.
+             * IFF/LBM support:
+               Prevent possible buffer overflows in RLE decoder due to badly
+               encoded bitmap.
+
+
+16-Aug-2006: GBM for Lucide (LUGBM.DLL 1.20)
+             * Adapt makefiles to use now the patched SOM header files
+               part of the Lucide plugindev pack.
+             * Fix for issue that GBM.DLL is not found when LIBPATHSTRICT
+               (or RUN!) is used.
+             * Add bldlevel info
+
+             GBM for Netscape/Mozilla/Firefox/SeaMonkey (NPGBM.DLL 1.20)
+             * Renamed menu "Reflect horizontally" to "Flip horizontal" and
+               menu "Reflect vertically" to "Flip vertical" in English NLS.
+             * Added bitmap information dialog box
+             * Fix for issue that GBM.DLL and GBMDLG.DLL are not found
+               when LIBPATHSTRICT (or RUN!) is used.
+             * Add bldlevel info
+
+             GBM.DLL 1.44
+             * Add bldlevel info
+
+             GBM command line tools (gbmver, gbmhdr)
+             * Remove .DLL from the dynamically loaded libs so that
+               their lookup also works with LIBPATHSTRICT enabled.
+
+             GBM File Dialog + GBMV2 1.29
+             * Remove .DLL from the dynamically loaded GBM.DLL so that
+               its lookup also works with LIBPATHSTRICT enabled.
+             * Add bldlevel info to GBMDLG.DLL
+
+             GBMRX.DLL 1.01
+             * Load GBM.DLL via "GBM" rather than "GBM.DLL" so that
+               it is found also with LIBPATHSTRICT enabled.
+             * Add bldlevel info
+
+             GBMDLGRX.DLL 1.02
+             * Add bldlevel info
+
+             All GBM modules
+             * Makefiles now support activating debug compile without
+               editing them. Just use nmake or wmake with parameter debug=on
+
+</pre>
+
+</body>
+</html>
+

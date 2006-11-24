@@ -1,0 +1,459 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMRX (REXX adapter for GBM.DLL)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">Using GBMRX in your own REXX programs</h1>
+
+<h2 style="color: rgb(0, 153, 0);">Introduction</h2>
+
+<p>
+GBMRX has a simple and straightforward API consisting of 12 functions.<br><br>
+
+A typical usage in a REXX program looks like this:
+</p>
+<pre>
+/* My REXX program */
+call RxFuncAdd <b>'GBM_LoadFuncs'</b>, <b>'GBMRX'</b>, <b>'GBM_LoadFuncs'</b>
+call <b>GBM_LoadFuncs</b>
+
+/*** Show the format info a bitmap ***/
+
+rc = <b>GBM_FileType</b>('myfile.gif', 'type.')
+if rc = "0" then
+do
+   say '----------------------'
+   say '  Extensions: 'type.extensions
+   say '  Short desc: 'type.shortname
+   say '  Long  desc: 'type.longname
+end
+else
+do
+   say
+   say '### Cannot detect bitmap type.'
+   say rc
+end
+
+call <b>GBM_DropFuncs</b>
+</pre>
+<p>
+Please have a look at the included script <code>example_gbmrx.cmd</code>
+for a more complete example.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">GBMRX API function availability</h2>
+
+<p>
+The following API functions are available since the specified version of GBMRX:
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tbody>
+  <tr>
+    <th align="center">GBMRX Version</th>  <th align="center">API function name</th>
+  </tr>
+  <tr>
+    <td align="center">1.00</td> <td><a href="#GBM_LoadFuncs">GBM_LoadFuncs</a><br>
+                                     <a href="#GBM_DropFuncs">GBM_DropFuncs</a><br>
+                                     <a href="#GBM_Version">GBM_Version</a><br>
+                                     <a href="#GBM_VersionRexx">GBM_VersionRexx</a><br>
+                                     <a href="#GBM_Types">GBM_Types</a><br>
+                                     <a href="#GBM_IsBppSupported">GBM_IsBppSupported</a><br>
+                                     <a href="#GBM_FileType">GBM_FileType</a><br>
+                                     <a href="#GBM_FilePages">GBM_FilePages</a><br>
+                                     <a href="#GBM_FileHeader">GBM_FileHeader</a><br>
+                                     <a href="#GBM_FilePalette">GBM_FilePalette</a><br>
+                                     <a href="#GBM_FileData">GBM_FileData</a><br>
+                                     <a href="#GBM_FileWrite">GBM_FileWrite</a></td>
+  </tr>
+</tbody>
+</table>
+<br>
+
+
+<h2 style="color: rgb(0, 153, 0);">GBMRX API Reference<br></h2>
+
+<a name="GBM_LoadFuncs"></a>
+<pre>
+<b>Function:  GBM_LoadFuncs</b>
+<b>Syntax  :</b>  call GBM_LoadFuncs
+<b>Params  :</b>  none
+
+<b>Info    :</b>  Registers all functions and procedures of GBMRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  call RxFuncAdd 'GBM_LoadFuncs', 'GBMRX', 'GBM_LoadFuncs'
+  call GBM_LoadFuncs
+</pre>
+
+<hr>
+
+<a name="GBM_DropFuncs"></a>
+<pre>
+<b>Function:  GBM_DropFuncs</b>
+<b>Syntax  :</b>  call GBM_DropFuncs
+<b>Params  :</b>  none
+
+<b>Info    :</b>  Unregisters all functions and procedures of GBMRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  call GBM_DropFuncs
+</pre>
+
+<hr>
+
+
+<a name="GBM_Version"></a>
+<pre>
+<b>Function:  GBM_Version</b>
+<b>Syntax  :</b>  version = GBM_Version()
+<b>Params  :</b>  none
+
+<b>Return  :</b>  "major.minor" The version number of used GBM.DLL.
+
+<b>Info    :</b>  Query version number of the used GBM.DLL module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  version = GBM_Version()
+</pre>
+
+<hr>
+
+<a name="GBM_VersionRexx"></a>
+<pre>
+<b>Function:  GBM_VersionRexx</b>
+<b>Syntax  :</b>  version = GBM_VersionRexx()
+<b>Params  :</b>  none
+
+<b>Return  :</b>  "major.minor" The version number of GBMRX.DLL.
+
+<b>Info    :</b>  Query version number of GBMRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  version = GBM_VersionRexx()
+</pre>
+
+<hr>
+
+<a name="GBM_Types"></a>
+
+<pre>
+<b>Function:  GBM_Types</b>
+<b>Syntax  :</b>  rc = GBM_Types('stem')
+
+<b>Params  :</b>  stem out - bitmap format information consisting of
+                      stem.0           : number of info blocks
+                      stem.X.extensions: bitmap extensions
+                      stem.X.shortname : short description
+                      stem.X.longname  : long description
+
+                      X: Ranging from 1 to stem.0
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Queries information about all supported bitmap formats.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_Types('types.')
+  if rc = "0" then
+  do
+     say 'Number of supported formats: 'types.0
+     say '----------------------'
+     do i = 1 to types.0
+        say '  Extensions: 'types.i.extensions
+        say '  Short desc: 'types.i.shortname
+        say '  Long  desc: 'types.i.longname
+        if i < types.0 then
+        do
+          say '----------------------'
+        end
+     end
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_IsBppSupported"></a>
+
+<pre>
+<b>Function:  GBM_IsBppSupported</b>
+<b>Syntax  :</b>  sup = GBM_IsBppSupported(fileExtension, bpp, rw)
+
+<b>Params  :</b>  string  in - the filetype extension reported by GBM_Types
+
+           string  in - bpp (bits per pixel) to test
+
+           string  in - "r" for testing for read support
+                        "w" for testing for read support
+
+<b>Return  :</b>  "0" (unsupported) or "1" (supported)
+
+<b>Info    :</b>  Test whether the input or output bitmap format
+           supports the specified colour depth.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  sup = GBM_IsBppSupported('GIF', 8, 'w')
+  if sup = "1" then
+  do
+     say 'Colour depth is supported by output format'
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_FileType"></a>
+
+<pre>
+<b>Function:  GBM_FileType</b>
+<b>Syntax  :</b>  rc = GBM_FileType(filename, 'stem')
+
+<b>Params  :</b>  string  in - filename
+
+           stem   out - bitmap format information consisting of
+                        stem.extensions: bitmap extensions
+                        stem.shortname : short description
+                        stem.longname  : long description
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Queries the bitmap format of the specified file.
+
+           <b>Note:</b> This function does only check the codec database
+                 but not the file content (and there only the extensions).
+                 Use GBM_FileHeader for this.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_FileType(filename, 'type.')
+  if rc = "0" then
+  do
+     say '  Extensions: 'type.extensions
+     say '  Short desc: 'type.shortname
+     say '  Long  desc: 'type.longname
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_FilePages"></a>
+
+<pre>
+<b>Function:  GBM_FilePages</b>
+<b>Syntax  :</b>  rc = GBM_FilePages(filename [, fileExtension])
+
+<b>Params  :</b>  string  in - filename
+
+           string  in - the optional filetype extension reported
+                        by GBM_Types to override autodetection
+                        based on the file extension.
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Queries the number of pages in the specified file.
+
+           <b>Note:</b> This function requires GBM.DLL version 1.35 or higher.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  numPages = GBM_FilePages(filename)
+  say 'Number of pages: 'numPages
+</pre>
+
+<hr>
+
+<a name="GBM_FileHeader"></a>
+
+<pre>
+<b>Function:  GBM_FileHeader</b>
+<b>Syntax  :</b>  rc = GBM_FileHeader(filename, options, 'stem' [, fileExtension])
+
+<b>Params  :</b>  string  in - filename
+
+           string  in - comma separated options
+                        (see GBM format documentation)
+
+           stem   out - header information consisting of
+                        stem.width : bitmap width
+                        stem.height: bitmap height
+                        stem.bpp   : bitmap colour depth (bpp)
+
+           string  in - the optional filetype extension reported
+                        by GBM_Types to override autodetection
+                        based on the file extension.
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Reads the bitmap header of the specified bitmap file.
+           Additional options (see GBM format documentation) may
+           be specified, e.g. "index=2".
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_FileHeader(filename, '', 'header.')
+  if rc = "0" then
+  do
+     say '  Bitmap width : 'header.width
+     say '  Bitmap height: 'header.height
+     say '  Bitmap bpp   : 'header.bpp' bpp'
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_FilePalette"></a>
+
+<pre>
+<b>Function:  GBM_FilePalette</b>
+<b>Syntax  :</b>  rc = GBM_FilePalette(filename, options, 'stem' [, fileExtension])
+
+<b>Params  :</b>  string  in - filename
+
+           string  in - comma separated options
+                        (see GBM format documentation)
+
+           stem   out - palette information consisting of
+                        stem.0      : number of palette entries
+                        stem.X.red  : red value
+                        stem.X.green: green value
+                        stem.X.blue : blue value
+
+                        X: Ranging from 1 to stem.0
+
+                        Note: Not all palette entries must be
+                              referenced by the bitmap data.
+
+           string  in - the optional filetype extension reported
+                        by GBM_Types to override autodetection
+                        based on the file extension.
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Reads the bitmap palette of the specified bitmap file.
+           Additional options (see GBM format documentation) may
+           be specified, e.g. "index=2".
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_FilePalette(filename, '', 'colors.')
+  if rc = "0" then
+  do
+     /* Print palette entries. Note the palette can be empty for true color bitmaps. */
+     say 'Number of palette entries: 'colors.0
+     say '----------------------'
+     do i = 1 to colors.0
+        say '  Index, (R,G,B): 'i', ('colors.i.red','colors.i.green','colors.i.blue')'
+     end
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_FileData"></a>
+
+<pre>
+<b>Function:  GBM_FileData</b>
+<b>Syntax  :</b>  rc = GBM_FileData(filename, options, 'stem' [, fileExtension])
+
+<b>Params  :</b>  string  in - filename
+
+           string  in - comma separated options
+                        (see GBM format documentation)
+
+           stem   out - The binary bitmap data. (No trailing dot!)
+
+           string  in - the optional filetype extension reported
+                        by GBM_Types to override autodetection
+                        based on the file extension.
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Reads the bitmap data of the specified bitmap file.
+           Additional options (see GBM format documentation) may
+           be specified, e.g. "index=2".
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_FileData(filename, '', 'data')
+  if rc = "0" then
+  do
+     expectedLength = (TRUNC((header.width * header.bpp + 31)/32)*4)*header.height
+     say '  Bitmap data length (expected): 'expectedLength
+     say '  Bitmap data length (read)    : 'LENGTH(data)
+  end
+</pre>
+
+<hr>
+
+<a name="GBM_FileWrite"></a>
+
+<pre>
+<b>Function:  GBM_FileWrite</b>
+<b>Syntax  :</b>  rc = GBM_FileWrite(filename, options, 'stem1', 'stem2', 'stem3' [, fileExtension])
+
+<b>Params  :</b>  string  in - filename
+
+           string  in - comma separated options
+                        (see GBM format documentation)
+
+           stem1   in - header information consisting of
+                        stem1.width : bitmap width
+                        stem1.height: bitmap height
+                        stem1.bpp   : bitmap colour depth (bpp)
+
+           stem2   in - palette information consisting of
+                        stem2.0      : number of palette entries
+                        stem2.X.red  : red value
+                        stem2.X.green: green value
+                        stem2.X.blue : blue value
+
+                        X: Ranging from 1 to stem2.0
+
+                        Note: The number of entries must match
+                              stem1.bpp^2.
+
+           stem3   in - The binary bitmap data.
+
+           string  in - the optional filetype extension reported
+                        by GBM_Types to override autodetection
+                        based on the file extension.
+
+<b>Return  :</b>  "0", an error message or "ERROR" for an unknown error
+
+<b>Info    :</b>  Writes a complete bitmap consisting of header, palette and data
+           to the specified file.
+           Additional options (see GBM format documentation) may
+           be specified, e.g. "compression=9" for PNG.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  rc = GBM_FileWrite('image.png', 'compression=9', 'header.', 'colors.', 'data')
+  if rc = "0" then
+  do
+     say 'SUCCESS'
+  end
+</pre>
+
+</body>
+</html>
+

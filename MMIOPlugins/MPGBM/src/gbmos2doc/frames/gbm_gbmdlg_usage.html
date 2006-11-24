@@ -1,0 +1,148 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMDLG (Using GBM File Dialog)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">Using GBMDLG in your own programs</h1>
+
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>
+GBMDLG has a simple and straightforward C-API consisting of 1 function only.
+It subclasses the OS/2 standard file dialog and provides extended functionality
+by using GBM.DLL:
+</p>
+<ul>
+  <li>An additional options entry field</li>
+  <li>File filtering based on bitmap formats supported by GBM.DLL</li>
+  <li>A preview of the selected bitmap</li>
+  <li>Basic bitmap information like size, colour depth and bitmap format</li>
+</ul>
+<p>
+The GBM File Dialog can also be used as modeless dialog just
+like the standard OS/2 file dialog. Just set the appropriate
+flags in the GBMFILEDLG.fild.fl.
+</p>
+<p>
+There is an import library provided (gbmdlg.lib) that can be linked to the
+program that needs access to the GBMDLG.DLL API.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">GBMDLG.DLL API function availability</h2>
+
+<p>
+The following API functions are available since the first version of GBMDLG.DLL:
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tbody>
+  <tr>
+    <th align="center">Calling convention</th> <th align="center">API function name</th>
+  </tr>
+  <tr>
+    <td align="center">_System</td> <td>GbmFileDlg<br>
+  </tr>
+</tbody>
+</table>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Example program</h2>
+
+<p>
+A typical usage of GBMDLG.DLL in a C/C++ program is shown below.
+The example program below shows the "File open..." file dialog and
+prints the selected filename and the options to stdout.
+</p>
+
+<pre>
+#define INCL_WIN
+#include &#60;os2.h&#62;
+
+#include &#60;stdlib.h&#62;
+#include &#60;stdio.h&#62;
+#include &#60;string.h&#62;
+<b>#include "gbmdlg.h"</b>
+
+<i>/* My program */</i>
+int main(int argc, char *argv[])
+{
+  char message[CCHMAXPATH+50] = { 0 };
+
+  <b>GBMFILEDLG</b> gbmfild;
+
+  HAB hab = NULLHANDLE; <i>/* Anchor-block handle  */</i>
+  HMQ hmq = NULLHANDLE; <i>/* Message queue handle */</i>
+
+  <i>/* Initialize PM */</i>
+  hab = WinInitialize(0);
+  if (hab == NULLHANDLE)
+  {
+    return 1;
+  }
+  hmq = WinCreateMsgQueue(hab, 0);
+  if (hmq == NULLHANDLE)
+  {
+    WinTerminate(hab);
+    return 1;
+  }
+
+  <i>/* Init the FILEDLG substruct and configure the dialog style. */</i>
+  memset(&(gbmfild.fild), 0, sizeof(FILEDLG));
+  gbmfild.fild.cbSize = sizeof(FILEDLG);
+  gbmfild.fild.fl     = (FDS_CENTER | FDS_OPEN_DIALOG);
+  strcpy(gbmfild.fild.szFullFile, "");
+  strcpy(gbmfild.szOptions , "");
+
+  <i>/* Create and show the GBM File Dialog. */</i>
+  if (<b>GbmFileDlg</b>(HWND_DESKTOP, HWND_DESKTOP, &#38;gbmfild)
+      == NULLHANDLE)
+  {
+    WinMessageBox(HWND_DESKTOP,
+                  HWND_DESKTOP,
+                  "Couldn't show GBM File Dialog.",
+                  "My program",
+                  0, MB_OK | MB_ERROR | MB_MOVEABLE);
+    return 1;
+  }
+
+  <i>/* Was OK button pressed? */</i>
+  if (gbmfild.fild.lReturn == DID_OK)
+  {
+    sprintf(message, "Filename: %s\nOptions: %s", gbmfild.fild.szFullFile,
+                                                  gbmfild.szOptions);
+
+    WinMessageBox(HWND_DESKTOP,
+                  HWND_DESKTOP,
+                  message,
+                  "My program",
+                  0, MB_OK | MB_INFORMATION | MB_MOVEABLE);
+  }
+  else
+  {
+    WinMessageBox(HWND_DESKTOP,
+                  HWND_DESKTOP,
+                  "No file selected.",
+                  "My program",
+                  0, MB_OK | MB_INFORMATION | MB_MOVEABLE);
+  }
+
+  WinDestroyMsgQueue(hmq);
+  WinTerminate(hab);
+
+  return 0;
+}
+</pre>
+<p>
+The example program does not support the online help functionality
+available by the GBM File Dialog to the user (F1 or Help button).
+As attaching the dialog to the help manager is a bit more complicated,
+please have a look at the gbmv2 application or, a bit smaller, the
+GBM File Dialog REXX adapter library GBMDLGRX. Both implement help support.
+</p>
+
+</body>
+</html>
+

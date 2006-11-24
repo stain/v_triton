@@ -1,0 +1,20 @@
+GBM 1.44 and GBM command line tools
+-----------------------------------
+(Public Domain)
+
+GBM (Generalised Bitmap Module) is a library for handling many different
+bitmap file formats. In this version, extended BMP, PBM, PGM, PPM, PNM,
+PNG and TIF support is additionally included.
+
+GBM.DLL is compiled with better compiler optimization.
+It also includes JPEG support from latest IJG library 6b,
+Libpng 1.2.12, Zlib 1.2.3 and Libtiff 3.8.2.
+
+All binaries are now optimized for Pentium or compatible processors but
+they should run on earlier 32bit processors as well (untested).
+
+The home of this enhanced GBMOS2 package is http://heikon.home.tlink.de.
+
+The original GBMOS2 package can be found on Hobbes or on the homepage of
+the original author Andy Key (http://www.nyangau.fsnet.co.uk).
+

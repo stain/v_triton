@@ -1,0 +1,45 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMDLGRX (REXX adapter for GBM File Dialog)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBMDLGRX - A REXX adapter for the GBM File Dialog</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>GBMDLGRX is a REXX adapter DLL for OS/2 and eComStation which REXX programs
+may use to select bitmap filenames to load or save.
+It uses <a href="gbm_gbmdlg.html">GBMDLG (GBM File Dialog)</a>.
+Full online help is available via GBMDLG.HLP.
+</p>
+<p>
+For being able to use it, the following additional files are required:
+</p>
+<ul>
+  <li>GBM.DLL    (GBM Bitmap Format Handler)</li>
+  <li>GBMDLG.DLL (GBM File Dialog)</li>
+  <li>GBMDLG.HLP (GBM File Dialog Help)</li>
+</ul>
+<br>
+
+
+<h2 style="color: rgb(0, 153, 0);">Installing GBMDLGRX</h2>
+
+<p>Just unzip the GBMOS2PM package and copy the <code>gbmdlg.dll</code>
+and <code>gbmdlg.hlp</code> files into the same directory as <code>gbmdlgrx.dll</code>.
+Get the GBMOS2 package and copy <code>gbm.dll</code> into the same directory as <code>gbmdlgrx.dll</code>.
+</p>
+
+<p>As <code>gbmdlg.dll</code> needs <code>gbm.dll</code>, also <code>gbmdlgrx.dll</code>
+needs it. <code>gbmdlg.dll</code> and <code>gbm.dll</code> need to be locateable via <code>LIBPATH</code>
+in order to be able to use <code>gbmdlgrx.dll</code>. If the online help of the GBM File Dialog
+should be available, <code>gbmdlg.hlp</code> must be locateable via <code>HELP</code> variable.
+</p>
+
+<p>
+For details about the GBM File Dialog see <a href="gbm_gbmdlg.html">here</a>.
+
+</body>
+</html>

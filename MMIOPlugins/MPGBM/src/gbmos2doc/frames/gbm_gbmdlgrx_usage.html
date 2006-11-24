@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMDLGRX (REXX adapter for GBM File Dialog)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">Using GBMDLGRX in your own REXX programs</h1>
+
+<h2 style="color: rgb(0, 153, 0);">Introduction</h2>
+
+<p>
+GBMDLGRX has a simple and straightforward API consisting of 5 functions.<br><br>
+
+A typical usage in a REXX program looks like this:
+</p>
+<pre>
+/* My REXX program */
+call RxFuncAdd <b>'GBMDLG_LoadFuncs'</b>, <b>'GBMDLGRX'</b>, <b>'GBMDLG_LoadFuncs'</b>
+call <b>GBMDLG_LoadFuncs</b>
+
+/*** Show Open File Dialog ***/
+openFilename = ''
+openOptions  = ''
+button       = <b>GBMDLG_OpenFileDlg</b>('My File Dialog', 'openFilename', 'openOptions')
+if (button = "OK") then
+do
+  say 'Opening bitmap file: 'openFilename
+  say '       with options: 'openOptions
+end
+
+call <b>GBMDLG_DropFuncs</b>
+</pre>
+
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">GBMDLGRX API function availability</h2>
+
+<p>
+The following API functions are available since the specified version of GBMDLGRX:
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tbody>
+  <tr>
+    <th align="center">GBMDLGRX Version</th>  <th align="center">API function name</th>
+  </tr>
+  <tr>
+    <td align="center">1.00</td> <td><a href="#GBMDLG_LoadFuncs">GBMDLG_LoadFuncs</a><br>
+                                     <a href="#GBMDLG_DropFuncs">GBMDLG_DropFuncs</a><br>
+                                     <a href="#GBMDLG_OpenFileDlg">GBMDLG_OpenFileDlg</a><br>
+                                     <a href="#GBMDLG_SaveAsFileDlg">GBMDLG_SaveAsFileDlg</a></td>
+  </tr>
+  <tr>
+    <td align="center">1.01</td> <td><a href="#GBMDLG_VersionRexx">GBMDLG_VersionRexx</a></td>
+  </tr>
+</tbody>
+</table>
+<br>
+
+
+<h2 style="color: rgb(0, 153, 0);">GBMDLGRX API Reference</h2>
+
+<a name="GBMDLG_LoadFuncs"></a>
+<pre>
+<b>Function:  GBMDLG_LoadFuncs</b>
+<b>Syntax  :</b>  call GBMDLG_LoadFuncs
+<b>Params  :</b>  none
+
+<b>Info    :</b>  Registers all functions and procedures of GBMDLGRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  call RxFuncAdd 'GBMDLG_LoadFuncs', 'GBMDLGRX', 'GBMDLG_LoadFuncs'
+  call GBMDLG_LoadFuncs
+</pre>
+
+<hr>
+
+<a name="GBMDLG_DropFuncs"></a>
+<pre>
+<b>Function:  GBMDLG_DropFuncs</b>
+<b>Syntax  :</b>  call GBMDLG_DropFuncs
+<b>Params  :</b>  none
+
+<b>Info    :</b>  Unregisters all functions and procedures of GBMDLGRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  call GBMDLG_DropFuncs
+</pre>
+
+<hr>
+
+<a name="GBMDLG_VersionRexx"></a>
+<pre>
+<b>Function:  GBMDLG_VersionRexx</b>
+<b>Syntax  :</b>  version = GBMDLG_VersionRexx()
+<b>Params  :</b>  none
+
+<b>Return  :</b>  "major.minor" The version number of GBMDLGRX.DLL.
+
+<b>Info    :</b>  Query version number of GBMDLGRX module.
+
+<b>Example :</b>
+
+  /* Code in the procedure */
+  version = GBMDLG_VersionRexx()
+</pre>
+
+<hr>
+
+<a name="GBMDLG_OpenFileDlg"></a>
+<pre>
+<b>Function:  GBMDLG_OpenFileDlg</b>
+<b>Syntax  :</b>  button = GBMDLG_OpenFileDlg('title', 'stem1', 'stem2')
+
+<b>Params  :</b>  title  in     - help window title
+           stem1  in/out - filename
+           stem2  in/out - options (comma separated)
+
+<b>Return  :</b>  "OK"      The OK button was selected. Filename/options
+                     have been returned in stems.
+           "CANCEL"  The CANCEL button was selected.
+                     Filename/options are unchanged.
+           "ERROR"   An error occured.
+                     Filename/options are unchanged.
+
+<b>Info    :</b>  Shows the GBM Open File Dialog.
+
+           Initially set values of stem1 and stem2 are used
+           for configuring the open stateus of the dialog.
+
+           The help window is shown when the help button
+           or F1 is pressed. The help window title can be
+           set to allow adapting it to the programs name.
+
+<b>Example :</b>
+
+/* Code in the procedure */
+  openFilename = 'f:\mailtux.gif'
+  openOptions  = 'index=2'
+  button       = GBMDLG_OpenFileDlg('My File Dialog', 'openFilename', 'openOptions')
+  say 'Open filename : 'openFilename
+  say 'Open options  : 'openOptions
+  say 'Button        : 'button
+
+/* Possible output */
+  Open filename : e:\bitmap.tif
+  Open options  : index=10
+  Button        : OK
+</pre>
+
+<hr>
+
+<a name="GBMDLG_SaveAsFileDlg"></a>
+<pre>
+<b>Function:  GBMDLG_SaveAsFileDlg</b>
+<b>Syntax  :</b>  button = GBMDLG_SaveAsFileDlg('title', 'stem1', 'stem2')
+
+<b>Params  :</b>  title  in     - help window title
+           stem1  in/out - filename
+           stem2  in/out - options (comma separated)
+
+<b>Return  :</b>  "OK"      The OK button was selected. Filename/options
+                     have been returned in stems.
+           "CANCEL"  The CANCEL button was selected.
+                     Filename/options are unchanged.
+           "ERROR"   An error occured.
+                     Filename/options are unchanged.
+
+<b>Info    :</b>  Shows the GBM Open File Dialog.
+
+           Initially set values of stem1 and stem2 are used
+           for configuring the open stateus of the dialog.
+
+           The help window is shown when the help button
+           or F1 is pressed. The help window title can be
+           set to allow adapting it to the programs name.
+
+<b>Example :</b>
+
+/* Code in the procedure */
+  saveFilename = 'f:\my_bitmap.gif'
+  saveOptions  = 'ilace'
+  button       = GBMDLG_SaveAsFileDlg('My File Dialog', 'saveFilename', 'saveOptions')
+  say 'Save filename : 'saveFilename
+  say 'Save options  : 'saveOptions
+  say 'Button        : 'button
+
+/* Possible output */
+  Save filename : e:\bitmap.tif
+  Save options  : ilace
+  Button        : CANCEL
+</pre>
+
+</body>
+</html>
+

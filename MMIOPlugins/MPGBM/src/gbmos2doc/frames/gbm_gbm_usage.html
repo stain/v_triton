@@ -1,0 +1,323 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM (Using GBM.DLL)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">Using GBM.DLL in your own programs</h1>
+
+<h2 style="color: rgb(0, 153, 0);">Introduction</h2>
+
+<p>
+GBM.DLL has a simple and straightforward C-API consisting of a couple of functions.
+There is an import library provided (gbm.lib) that can be linked to the program
+that needs access to the GBM.DLL API.
+</p>
+<p>
+For backward compatibility a part of the API uses IBM's _Optlink
+calling convention. These are mainly those functions starting
+with gbm_ rather than Gbm_ (which use _System).
+There are some exceptions to this, new API extensions also use gbm_
+but with _System calling convention (as new API extensions should do).<br><br>
+<b>It is recommended to use the functions with _System calling convention
+in new programs.</b>
+</p>
+<p>The following features are provided by the GBM.DLL API:
+<ul>
+  <li>Read/write a bitmap from/to a file.</li>
+  <li>Read/write a bitmap by using custom I/O functions that can be
+      registered.</li>
+  <li>Reading individual pages of all supported multipage capabable
+      bitmap formats.</li>
+  <li>Alpha channel/transparency support for GIF, PNG, TIF</li>
+  <li>Colour depths 1, 4, 8, 24, 32, 48, 64 bpp on the internal
+      bitmap format. Other external colour depths like 2bpp are
+      usually mapped to the above depths to simplify image processing.</li>
+</ul>
+<p>
+For doing bitmap manipulations there is a bunch of helper
+libraries included in the archives which are used by the
+provided GBM command line tools. They can also easily be
+used by other programs as well. They feature:
+<ul>
+  <li>Simple bitmap resizing</li>
+  <li>Rotating in steps of 90&#176;, mirroring</li>
+  <li>Gamma correction</li>
+  <li>Colour mapping with a bunch of algorithms (like error diffusion or
+      halftoning)</li>
+</ul>
+<p>
+All of the above algorithm directly work on the standard bitmap data
+format provided by the GBM.DLL to the client.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">GBM.DLL API function availability</h2>
+
+<p>
+The following API functions are available since the specified version of GBM.DLL:
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tbody>
+  <tr>
+    <th align="center">GBM.DLL Version</th> <th align="center">Calling convention</th> <th align="center">API function name</th>
+  </tr>
+  <tr>
+    <td align="center" rowspan="2">1.00</td> <td align="center">_System</td> <td>Gbm_version<br>
+                                                                                 Gbm_init<br>
+                                                                                 Gbm_deinit<br>
+                                                                                 Gbm_query_n_filetypes<br>
+                                                                                 Gbm_guess_filetype<br>
+                                                                                 Gbm_query_filetype<br>
+                                                                                 Gbm_read_header<br>
+                                                                                 Gbm_read_palette<br>
+                                                                                 Gbm_read_data<br>
+                                                                                 Gbm_write<br>
+                                                                                 Gbm_err</td>
+  </tr>
+  <tr>
+                                            <td align="center">_Optlink</td> <td>gbm_version<br>
+                                                                                 gbm_init<br>
+                                                                                 gbm_deinit<br>
+                                                                                 gbm_query_n_filetypes<br>
+                                                                                 gbm_guess_filetype<br>
+                                                                                 gbm_query_filetype<br>
+                                                                                 gbm_read_header<br>
+                                                                                 gbm_read_palette<br>
+                                                                                 gbm_read_data<br>
+                                                                                 gbm_write<br>
+                                                                                 gbm_err</td>
+  </tr>
+  <tr>
+    <td align="center">1.07</td> <td align="center">_Optlink</td> <td>gbm_io_setup<br>
+                                                                      gbm_io_open<br>
+                                                                      gbm_io_create<br>
+                                                                      gbm_io_close<br>
+                                                                      gbm_io_lseek<br>
+                                                                      gbm_io_read<br>
+                                                                      gbm_io_write</td>
+  </tr>
+  <tr>
+    <td align="center">1.09</td> <td align="center">_System</td> <td>Gbm_io_open<br>
+                                                                     Gbm_io_create<br>
+                                                                     Gbm_io_close<br>
+                                                                     Gbm_io_lseek<br>
+                                                                     Gbm_io_read<br>
+                                                                     Gbm_io_write</td>
+  </tr>
+  <tr>
+    <td align="center">1.35</td> <td align="center">_System</td> <td>gbm_restore_io_setup<br>
+                                                                     gbm_read_imgcount</td>
+  </tr>
+</tbody>
+</table>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Example program (bitmap converter)</h2>
+
+<p>
+A typical usage of GBM.DLL in a C/C++ program is shown below.
+The example program below reads a file named "bitmap.png" and
+writes it in a different format as "bitmap.tif". So it is a simple
+bitmap format converter. A full blown converter is included in the GBM
+command line tools (gbmconv.c).
+</p>
+<pre>
+<i>/*
+ * My bitmap converter.
+ */</i>
+
+#include &#60;stdlib.h&#62;
+#include &#60;stdio.h&#62;
+<b>#include "gbm.h"</b>
+
+int main(int argc, char *argv[])
+{
+    char * fn_src  = "bitmap.png";
+    char * fn_dst  = "bitmap.tif";
+    char * opt_src = "ext_bpp"; <i>/* provide full colour depth data */</i>
+    char * opt_dst = "lzw";     <i>/* use LZW compression for destination TIF */</i>
+
+    int      fd, ft_src, ft_dst, stride, flag;
+    <b>GBM_ERR</b>  rc;
+    <b>GBMFT</b>    gbmft;
+    <b>GBM</b>      gbm;
+    <b>GBMRGB</b>   gbmrgb[0x100];
+    byte    *data;
+
+    <i>/* initialize GBM */</i>
+    <b>Gbm_init</b>();
+
+    <i>/* The bitmap format is usually determined from it's
+     * extension. It is also possible to test the format
+     * type by checking the bitmap header but this is less
+     * performant. In the example here we simply rely on the
+     * file extension.
+     *
+     * Once the file type is determined, the struct GBMFT
+     * contains the found bitmap format name in a short
+     * and a long description as well as the supported
+     * file extensions for this type of bitmap format.
+     */</i>
+
+    <i>/* guess the source file type from the source filename */</i>
+    if ( <b>Gbm_guess_filetype</b>(fn_src, &#38;ft_src) != <b>GBM_ERR_OK</b> )
+    {
+      fprintf(stderr, "Can't guess bitmap file format for %s\n", fn_src);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* guess the destination file type from the destination filename */</i>
+    if ( <b>Gbm_guess_filetype</b>(fn_dst, &#38;ft_dst) != <b>GBM_ERR_OK</b> )
+    {
+      fprintf(stderr, "Can't guess bitmap file format for %s\n", fn_dst);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* Now open the source file for reading */</i>
+    if ( (fd = <b>Gbm_io_open</b>(fn_src, <b>GBM_O_RDONLY</b>)) == -1 )
+    {
+      fprintf(stderr, "Can't open %s\n", fn_src);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* Now read the bitmap header of the first bitmap (PNG only has 1).
+     * It provides information about the bitmap size and colour depth.
+     */</i>
+    if ( (rc = <b>Gbm_read_header</b>(fn_src, fd, ft_src, &#38;gbm, opt_src)) != <b>GBM_ERR_OK</b> )
+    {
+      <b>Gbm_io_close</b>(fd);
+      fprintf(stderr, "Can't read header of %s: %s\n", fn_src, <b>Gbm_err</b>(rc));
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* Now check whether the destination format supports the colour depth
+     * of the source bitmap data.
+     */</i>
+    <b>Gbm_query_filetype</b>(ft_dst, &#38;gbmft);
+    switch ( gbm.bpp )
+    {
+        case 64: flag = <b>GBM_FT_W64</b>; break;
+        case 48: flag = <b>GBM_FT_W48</b>; break;
+        case 32: flag = <b>GBM_FT_W32</b>; break;
+        case 24: flag = <b>GBM_FT_W24</b>; break;
+        case  8: flag = <b>GBM_FT_W8</b>;  break;
+        case  4: flag = <b>GBM_FT_W4</b>;  break;
+        case  1: flag = <b>GBM_FT_W1</b>;  break;
+        default: flag = 0;          break;
+    }
+    if ( (gbmft.flags & flag) == 0 )
+    {
+      <b>Gbm_io_close</b>(fd);
+      fprintf(stderr, "Output bitmap format %s does not support writing %d bpp data\n",
+                      gbmft.short_name, gbm.bpp);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* Let's read the colour palette of the source format.
+     * If the source bitmap is a true colour bitmap, no
+     * palette data is available. Palette information is
+     * provided for 1, 4 and 8bpp colour depths.
+     * If the bitmap has no colour palette (gbm.bpp >= 24),
+     * no palette information is returned but the call will
+     * still succeed. In this case palette information must
+     * not be used!
+     */</i>
+
+    if ( (rc = <b>Gbm_read_palette</b>(fd, ft_src, &#38;gbm, gbmrgb)) != <b>GBM_ERR_OK</b> )
+    {
+      <b>Gbm_io_close</b>(fd);
+      fprintf(stderr, "Can't read palette of %s: %s\n", fn_src, <b>Gbm_err</b>(rc));
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* Now we are ready to read the bitmap data. The returned
+     * data has a standard format which compatible with the
+     * Windows DIB and OS/2 bitmap format data.
+     *
+     * For palette images an index into the colour table is
+     * in the data. Each index has the size of the number of
+     * bits reported by the bitmap colour depth. For 4bpp,
+     * 4 bits refer to an palette entry and thus 2 indices
+     * are stored in one byte.
+     *
+     * For true colour images the colour is directly encoded
+     * in the bitmap data. The encoding is scheme BGR (blue, green, red).
+     * The size of each part of the triple is a third of the return
+     * bitmap colour depth (gbm.bpp/3). Colour depths are so far
+     * 24bpp and 48bpp.
+     *
+     * For true colour images with alpha channel a quadruple is
+     * used. The encoding scheme is BGRA (blue, green, red, alpha).
+     * The size of each part of the quadruple is a fourth of the return
+     * bitmap colour depth (gbm.bpp/4). Colour depths with alpha
+     * channel data are so far 32bpp and 64bpp.
+     *
+     * Each data row is aligned to the next multiple of 4 bytes.
+     * This is important for calculating the correct size
+     * for bitmap data buffer.
+     */</i>
+
+    stride = ( ((gbm.w * gbm.bpp + 31)/32) * 4 );
+    if ( (data = malloc((size_t) (stride * gbm.h))) == NULL )
+    {
+      <b>Gbm_io_close</b>(fd);
+      fprintf(stderr, "Out of memory allocating %d bytes for input bitmap\n", stride * gbm.h);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    if ( (rc = <b>Gbm_read_data</b>(fd, ft_src, &#38;gbm, data)) != <b>GBM_ERR_OK</b> )
+    {
+      free(data);
+      <b>Gbm_io_close</b>(fd);
+      fprintf(stderr, "Can't read bitmap data of %s: %s\n", fn_src, <b>Gbm_err</b>(rc));
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* We're done with reading the source bitmap file. */</i>
+    <b>Gbm_io_close</b>(fd);
+
+    <i>/* Now create the destination bitmap file. */</i>
+    if ( (fd = <b>Gbm_io_create</b>(fn_dst, <b>GBM_O_WRONLY</b>)) == -1 )
+    {
+      free(data);
+      fprintf(stderr, "Can't create %s\n", fn_dst);
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    <i>/* And finally write the bitmap data, including palette if there is one. */</i>
+    if ( (rc = <b>Gbm_write</b>(fn_dst, fd, ft_dst, &#38;gbm, gbmrgb, data, opt_dst)) != <b>GBM_ERR_OK</b> )
+    {
+      free(data);
+      <b>Gbm_io_close</b>(fd);
+      remove(fn_dst);
+      fprintf(stderr, "Can't write %s: %s\n", fn_dst, <b>Gbm_err</b>(rc));
+      <b>Gbm_deinit</b>();
+      return 1;
+    }
+
+    free(data);
+
+    <b>Gbm_io_close</b>(fd);
+
+    <i>/* we don't need GBM anymore */</i>
+    <b>Gbm_deinit</b>();
+
+    return 0;
+}
+</pre>
+
+</body>
+</html>
+

@@ -1,0 +1,61 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMLOGO (OS/2 boot logo creator)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBMLOGO - Make a boot logo for OS/2 and eComStation</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction</h2>
+
+<p>
+<pre>
+usage: gbmlogo [-e] [-hN] &quot;\&quot;filename.ext\&quot;{,opt}&quot;
+flags: -e             error-diffuse to RGBI
+       -hN            halftone to RGBI
+                      N is a halftoning algorithm number (default 0)
+                      -e and -h can't be used together
+       filename.ext   640x400 bitmap
+                      ext's are used to deduce desired bitmap file format
+                      Bitmap when ext in [BMP VGA BGA RLE DIB RL4 RL8]
+                      GIF when ext in [GIF]
+                      PCX when ext in [PCX PCC]
+                      TIFF when ext in [TIF TIFF]
+                      Targa when ext in [TGA VST AFI]
+                      ILBM when ext in [IFF LBM]
+                      YUV12C when ext in [VID]
+                      Greymap when ext in [PGM]
+                      Pixmap when ext in [PPM]
+                      KIPS when ext in [KPS]
+                      IAX when ext in [IAX]
+                      XBitmap when ext in [XBM]
+                      Sprite when ext in [SPR SPRITE]
+                      PSEG when ext in [PSE PSEG PSEG38PP PSEG3820]
+                      GemRas when ext in [IMG XIMG]
+                      Portrait when ext in [CVP]
+                      PNG when ext in [PNG]
+                      JPEG when ext in [JPG JPEG JPE]
+       opt's          bitmap format specific options
+
+       In case the filename contains a comma or spaces and options
+       need to be added, the syntax &quot;\&quot;filename.ext\&quot;{,opt}&quot; must be
+       used to clearly separate the filename from the options.
+</pre>
+
+<p>At boot time OS/2 and eComStation look for the file <code>\OS2LOGO</code> and
+displays this as the boot logo.</p>
+
+<p>This logo is in a special format, compressed using the EXEPACK
+algorithm.</p>
+
+<p>The IBM OS/2 Developer Connection CDs have included a tool called
+<code>MAKELOGO</code>, which takes dumps of the R,G,B and I planes
+from the VGA frame buffer, and writes an <code>\OS2LOGO</code>.
+
+<p>GBMLOGO takes in a 640x400 bitmap in any format, and writes out the
+files needed by MAKELOGO.</p>
+
+</body>
+</html>
+
