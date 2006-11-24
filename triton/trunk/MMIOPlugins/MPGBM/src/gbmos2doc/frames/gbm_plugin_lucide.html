@@ -1,0 +1,95 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM plugin for Lucide</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBM plugin for Lucide</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>Lucide is a general purpose document viewer for eComStation. It provides
+a plugin interface which allows developers to integrate support for all kinds
+of document files. For details about Lucide please visit the
+<a href="http://svn.netlabs.org/lucide" target="_blank">Lucide project homepage</a>.
+</p>
+<p>
+Please note that Lucide is still in beta status and thus also the GBM plugin
+might not work in all cases as expected.
+</p>
+<p>
+The GBM plugin for Lucide is such an extension that provides access to all GBM
+supported bitmap formats. The following Lucide features are currently supported by the plugin:
+</p>
+<ul>
+  <li>Read all bitmap formats supported by GBM.DLL</li>
+  <li>Save loaded bitmap in any GBM supported format if it has only one page (requires Lucide beta 2.1)</li>
+  <li>Multipage bitmap files which can be navigated in Lucide</li>
+  <li>Scaled bitmap preview</li>
+  <li>Rotated bitmap preview</li>
+  <li>Document information</li>
+</ul>
+
+<p>
+For being able to use it, the following additional files are required:
+</p>
+<ul>
+  <li>Lucide beta 2 or higher</li>
+  <li>GBM.DLL (GBM Bitmap Format Handler) version 1.35 or higher except 1.41<br>
+      (versions below will work but then only the first page within
+      a multipage file is shown)</li>
+</ul>
+<p>
+<b>Note:</b><br>GBM.DLL version 1.41 must not be used as it contains a compiler
+optimization issue that reduces stability. When used together
+with the GBM plugin for Lucide, Lucide will crash when opening
+JPEG bitmaps. Please upgrade to GBM.DLL version 1.42 or higher.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Installing GBM for Lucide</h2>
+
+<p>Simply copy <code>lugbm.dll</code> into the Lucide installation directory.
+Please check the requirements listed for <code>gbm.dll</code> above.
+Copy <code>gbm.dll</code> either into the Lucide installation directory beside
+<code>lugbm.dll</code> or put it somewhere in your LIBPATH (defined in CONFIG.SYS).
+The last option is recommended if <code>gbm.dll</code> is also required by
+other programs.
+</p>
+<br>
+
+<a name="LICENSE"></a><h2 style="color: rgb(0, 153, 0);">License of GBM for Lucide</h2>
+
+<p>Copyright (C) 2006 Heiko Nitzsche</p>
+<p>
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the author be held liable for any damages
+arising from the use of this software.
+</p>
+<p>
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+</p>
+<ol>
+  <li>The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.</li>
+  <li>Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.</li>
+  <li>This notice may not be removed or altered from any source distribution.</li>
+</ol>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Screenshot</h2>
+
+<p>Lucide window showing a multipage GIF by using the GBM plugin:</p>
+
+<img src="../images/gbm_lucide.png" alt="GBM for Lucide in action" title="GBM for Lucide in action">
+<br>
+
+</body>
+</html>
+

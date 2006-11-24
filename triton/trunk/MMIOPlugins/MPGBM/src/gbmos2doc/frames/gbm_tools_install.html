@@ -1,0 +1,107 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM Installation</title>
+</head>
+<body>
+
+<h1 style="color: rgb(204, 0, 0);">GBM Installation on OS/2 and eCS</h1>
+
+<p>All applications included in the GBM package should be used with the included
+GBM.DLL version. So far all programs can also be used with earlier GBM.DLL versions
+higher than 1.11. Some functional restrictions might apply then.
+</p>
+<p>
+<span style="color: red;">
+If you're using eComStation 1.2 or 1.2R please read the notes at the end of this page.
+</span>
+</p>
+<p>There is no special installation required. Simply copy the
+files into an empty directory.
+</p>
+<p>GBM.DLL can be installed at a central location of the system so that
+it is found in the paths defined by LIBPATH in CONFIG.SYS. Thus sharing
+between all programs of this package and the programs from the gbmos2
+package is possible.
+</p>
+
+<b>Note:</b>
+<p>
+If the GBM command line tools should be run from everywhere and not only
+from the installation directory, it is necessary to add the installation
+directory to some environment variables in CONFIG.SYS.
+</p>
+<p>The following changes are necessary:
+   (It is assumed that the installation directory is D:\GBM)
+</p>
+<ol>
+  <li><p>Add D:\GBM to the end of the line beginning with SET PATH separated
+      by ; to the previous parameter.<br>
+      (e.g. <code>SET PATH=C:\OS2;D:\GBM</code>)</p>
+  </li>
+
+  <li><p>Add D:\GBM to the end of the line beginning with LIBPATH separated
+   by ; to the previous parameter. This is necessary so that the system
+   can find GBM.DLL.<br>
+   (e.g. <code>LIBPATH=.;C:\OS2\DLL;D:\GBM)</code></p>
+  </li>
+
+  <li><p>Reboot.</p>
+  </li>
+
+  <li><p>For this step you need gbmver.exe. It is included in the GBM package.
+  <br><br>
+   Open a command line and go to a directory OTHER THAN the installation.
+   Then start gbmver.exe as if it would be in this directory.
+   It should report the location and the version of GBM.DLL.
+   Verify that the reported version is the installed version. If the
+   reported version is found in a different path, do a file search
+   for GBM.DLL on your system and check for duplicates or older versions.<br><br>
+   If an older version is found (version must be higher than 1.11 !!!),
+   you can replace it with the GBM.DLL from this package.
+   Alternatively modify the LIBPATH statement in CONFIG.SYS so that
+   the correct path to GBM.DLL is placed before all other versions.
+   After the changes are done, check again with gbmver.exe.</p>
+  </li>
+</ol>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Notes for eCS 1.2/1.2R users</h2>
+
+<p>
+eComStation 1.2 ships with an old version of GBM.DLL (1.12) that is
+loaded on startup of the WPS already. Thus other applications requiring
+a newer version of GBM.DLL cannot use it as the operating system will
+provide the functionality of the loaded DLL only.
+</p>
+<p>
+The good news is that the GBM.DLL shipped with eCS can be safely replaced
+by the latest version provided here (or on Hobbes). It doesn't hurt to
+make a backup of the old gbm.dll before!
+</p>
+<p>
+This also has some advantages. Some mechanisms of the eCS 1.2 WPS
+will automatically make use of the enhanced features. Namely the bitmap
+preview in the desktop folders will show many more TIF and PNG previews,
+especially those with colour depths larger than 24bpp. The bad news is that
+the MMECS subsystem does not make full use of the GBM features yet and thus
+for some bitmaps previews will be shown but the system provided image viewer
+cannot show them.
+</p>
+<p>
+<b>Note:</b> If you cannot override the eCS shipped GBM.DLL because it is in use,
+run <pre>unlock C:\OS2\DLL\GBM.DLL</pre> from a command line first and try it again
+(adapt the drive letter to your eCS installation drive). Don't forget to reboot
+afterwards to activate the new gbm.dll.
+</p>
+<p>
+As an alternative the tool RUN! from Rich Walsh can be used for running
+programs using different gbm.dll versions in parallel. Get it from
+<a href="http://hobbes.nmsu.edu/cgi-bin/h-search?key=run_0">Hobbes</a>.
+</p>
+
+</body>
+</html>
+

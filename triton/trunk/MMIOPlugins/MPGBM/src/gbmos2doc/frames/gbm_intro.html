@@ -1,0 +1,254 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM Introduction</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBM - Introduction</h1>
+<h2 style="color: rgb(0, 153, 0);">Overview<br>
+</h2>
+<p>The Generalised Bitmap Module (GBM) is a
+library capable of loading and saving bitmap files in a variety of popular
+bitmap file formats<span style="text-decoration: underline;"></span>.
+Programs may be written to use this code, and thus be able to access a variety
+of file formats without actually knowing what format the pictures are in, or
+any details about file format itself.
+</p>
+<p>Additionally the GBM package contains of a number of other components:</p>
+<ul>
+  <li>Some pieces of code that perform common operations on bitmap data such
+      as reflection, X-Y transposition, rotation, cropping, scaling, halftoning,
+      error-diffusing, palette mapping, and colour space mapping.
+  </li>
+  <li>
+    Some command line programs which use the above code.
+  </li>
+</ul>
+
+
+<h2 style="color: rgb(0, 153, 0);">Platforms</h2>
+GBM is available for several platforms, namely OS/2, DOS, Windows, Linux and AIX.<br>
+<br>
+<span style="font-weight: bold;">Note:<br></span>
+The version provided here is so far only supported on OS/2.
+Though it shouldn't be a problem to compile it for other platforms as
+it uses pure ANSI C code. You can get versions for other platforms
+supporting a smaller feature set on the homepage of the initial author
+<a href="http://www.nyangau.fsnet.co.uk" target="_blank">Andy Key</a>.<br>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Enhancements included</h2>
+<p>
+Many enhancements have been applied compared to the original version provided by Andy Key:
+</p>
+<p>
+<b>GBM format handler library</b>
+</p>
+<ul>
+  <li>PNG (new codec)
+  <ul>
+    <li>based on latest Libpng</li>
+    <li>supports all RGB/Gray color depths (1,2,4,8,16,24,32,48,64bpp)</li>
+    <li>supports transparency and alpha channel</li>
+    <li>supports PNG provided and custom backgrounds</li>
+  </ul>
+  <li>TIF (replacement codec)
+  <ul>
+    <li>based on latest Libtiff</li>
+    <li>supports multipage bitmaps</li>
+    <li>supports most RGB/Gray color depths (1,2,4,8,16,24,32,48,64bpp), partly CMYK</li>
+    <li>supports alpha channel (with rendering against a custom background)</li>
+    <li>Compression schemes: LZW, PackBits, ThunderScan, NeXT, JPEG, CCITT, Deflate, Adobe Deflate</li>
+  </ul>
+  <li>PBM (new codec)
+  <ul>
+    <li>reads and writes 1bpp black/white bitmaps</li>
+    <li>supports format types P1 (ASCII) and P4 (binary)</li>
+    <li>supports multipage P4 bitmaps</li>
+  </ul>
+  <li>PGM (enhanced codec)
+  <ul>
+    <li>reads and writes 8bpp grey bitmaps</li>
+    <li>supports format types P2 (ASCII) and P5 (binary)</li>
+    <li>supports multipage P5 bitmaps</li>
+  </ul>
+  <li>PPM (replacement codec)
+  <ul>
+    <li>reads and writes 24 and 48bpp RGB bitmaps</li>
+    <li>supports format types P3 (ASCII) and P6 (binary)</li>
+    <li>supports multipage P6 bitmaps</li>
+  </ul>
+  <li>PNM (new codec)
+  <ul>
+    <li>PNM consolidates the formats PBM, PGM and PPM under one extension</li>
+    <li>supports format types P1,P2,P3 (ASCII) and P4,P5,P6 (binary)</li>
+    <li>supports multipage P4,P5 and P6 bitmaps</li>
+  </ul>
+  <li>BMP (enhanced codec)
+  <ul>
+    <li>reads also RLE24 encoded OS/2 bitmaps</li>
+    <li>reads also Windows MultiMedia bitmaps (RGB, BITFIELDS: 16bpp, 32bpp)</li>
+    <li>handles now 1bpp color bitmaps rather than always mapping them to black/white</li>
+  </ul>
+  <li>JPEG (update to IJG JPEG 6B)</li>
+  <li>REXX adapter DLL available (<a href="gbm_gbmrx.html">GBMRX</a>)</li>
+</ul>
+<p>
+<b>Command line tools</b>
+</p>
+<ul>
+  <li>gbmsize, gbmhdr, gbmref, gbmsub, gbmgamma
+  <ul>
+    <li>now also support 32, 48 and 64bpp (with/without alpha channel)</li>
+  </ul>
+  <li>gbmconv added (format converter)</li>
+  <li>gbmver added (helps analyzing all installed GBM DLLs and provides version compatibility hints for users)</li>
+  <li>Enhanced command line parser to fix some issues when filenames with comma where specified</li>
+</ul>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">JPEG support</h2>
+<p>The Independant JPEG Group have generously allowed others to use
+their source code to their JPEG handling library. The only condition
+of use is that the IJG must be credited for their work. Try looking
+for this library at: </p>
+<ul>
+  <li>
+    <p><a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs851/jpegsr6b.zip">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs851/jpegsr6b.zip</a>.</p>
+  </li>
+</ul>
+<p>Martin Lisowski has generously donated his <code>gbmjpg.c</code> to GBM. This file
+allows GBM to use the IJG 6a/IJG 6b library. </p>
+<p>GBM may be compiled up either with or without JPEG support. If you
+use the JPEG enabled variety of GBM in your project, you must credit
+the IJG. This code has been tested on OS/2, AIX, Linux
+and Windows.<br>
+<br>
+</p>
+
+
+<h2 style="color: rgb(0, 153, 0);">PNG support (extension to base version)<br>
+</h2>
+<p>The official Open Source reference libraries Libpng 1.2.12 and Zlib
+1.2.3 can be used to build GBM with PNG support. Try looking for
+these libraries at: </p>
+<ul>
+  <li><a href="http://www.libpng.org" target="_blank">http://www.libpng.org</a></li>
+  <li><a href="http://www.zlib.org" target="_blank">http://www.zlib.org</a></li>
+</ul>
+<p> </p>
+<p>I (Heiko Nitzsche) have donated <code>gbmpng.c</code> and <code>gbmmap.c</code>
+to GBM. These files allow GBM to use the Libpng 1.2.12 library. </p>
+<p>GBM may be compiled up either with or without PNG support. If you use
+the PNG enabled variety of GBM in your project, you should credit the
+Open Source projects for Libpng and Zlib. This code has been tested on OS/2.<br>
+<br>
+</p>
+
+
+<h2 style="color: rgb(0, 153, 0);">TIF support (replacement of base version)<br>
+</h2>
+<p>The official Open Source reference libraries Libtiff 3.8.2 can be
+used to build GBM with TIF support. Required are Zlib 1.2.3 and the
+IJG Group lib IJG 6b that is also used for standard JPEG support. Try
+looking for these libraries at:<code><br>
+</code></p>
+<ul>
+  <li><a href="http://www.remotesensing.org/libtiff" target="_blank">http://www.libtiff.org</a></li>
+  <li><a href="http://www.zlib.org" target="_blank">http://www.zlib.org</a></li>
+  <li><a href="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs851/jpegsr6b.zip">ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/AFPL/gs851/jpegsr6b.zip</a>.
+  </li>
+</ul>
+<p>I (Heiko Nitzsche) have donated <code>gbmtif.c</code> and <code>gbmmap.c</code>
+to GBM. These files allow GBM to use the Libtiff 3.8.2 library. </p>
+<p>GBM may be compiled up either with or without TIF support. If you
+use the TIF enabled variety of GBM in your project, you should credit
+the Open Source projects for Libtiff, Zlib and the IJG. This code has
+been tested on OS/2.<br>
+<br>
+</p>
+
+
+<h2 style="color: rgb(0, 153, 0);">PBM support (extension to base version)<br>
+</h2>
+<p>I (Heiko Nitzsche) have donated <code>gbmpbm.c</code> to GBM. This file allows
+GBM to read and write black/white PBM (binary P4, ASCII P1) files.
+This code has been tested on OS/2.</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">PGM support (enhancement of base version)<br>
+</h2>
+<p>I (Heiko Nitzsche) have donated <code>gbmpgm.c</code> to GBM. This file allows
+GBM to read and write greyscale PGM (binary P5, ASCII P2) files.
+This code has been tested on OS/2.</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">PPM support (replacement of base version)<br>
+</h2>
+<p>I (Heiko Nitzsche) have donated <code>gbmppm.c</code> to GBM. This file allows
+GBM to read and write unpalettised 24 and 48 bpp multipage RGB PPM (binary P6, ASCII P3) files.
+This code has been tested on OS/2.</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">PNM support (extension to base version)<br>
+</h2>
+<p>I (Heiko Nitzsche) have donated <code>gbmpnm.c</code> to GBM. This file allows
+GBM to read and write PNM (binary P4,P5,P6, ASCII P1,P2,P3) files.
+This code has been tested on OS/2.</p>
+<br>
+
+
+<h2><a name="gbm_other_code"></a><span style="color: rgb(0, 153, 0);">Related
+code</span></h2>
+<p>GBM was originally written as the file handling part of
+   <a href="http://www.nyangau.fsnet.co.uk" target="_blank">Andy Key's homebrew ray tracer, RT</a>.<br>
+</p>
+<p>His follow-on Modular Renderer package, MR, uses GBM. It does
+wire-frame, polygon rendering and raytracing. </p>
+<p>From time to time I notice people (other than myself) using GBM
+either in its precompiled DLL form, or by recompiling bits of the
+source. Sometimes people email me to let me know. </p>
+<p>Of course, simply using the code unmodified makes it easier for
+you to pick up improvements in the code, as and when they happen.</p>
+<p>Here are some example applications using GBM code:
+</p>
+
+<ul>
+  <li><a href="gbm_gbmv.html">GBMV</a>, <a href="gbm_gbmv2.html">GBMV2</a>, the
+      <a href="gbm_gbmdlg.html">GBM File Dialog</a>, <a href="gbm_gbmrx.html">GBMRX</a>,
+      <a href="gbm_gbmdlgrx.html">GBMDLGRX</a>, the <a href="gbm_plugin_lucide.html">GBM plugin for Lucide</a>,
+      the <a href="gbm_plugin_mozilla.html">GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey</a>
+      and of course the <a href="gbm_tools.html">GBM command line tools</a> use GBM.DLL unmodified.</li>
+  <li><a href="http://www.ecomstation.com" target="_blank">eComStation 1.2/1.2R</a> ships with GBM.DLL (1.12).</li>
+  <li><a href="http://www.manglais.com" target="_blank">Maul Publisher</a> uses GBM source code
+      in it's gbm handler code.</li>
+  <li><a href="http://os2.zworks.de" target="_blank">PM-Raw, PM-Exif, Calydos and CD-Magic</a>
+      (all on OS/2) use GBM command line tools and thus also GBM.DLL.</li>
+  <li><a href="http://glass.os2.spb.ru/software/english/pm123.html" target="_blank">PM123 Digital Audio Player</a>
+      uses GBM source code. (see also: <a href="http://sektori.com/pm123" target="_blank">old pages</a>)</li>
+  <li>The replacement <a href="http://www.os2world.com/cdwriting" target="_blank">JPEG IO Codec</a>
+      for OS/2 uses GBM.DLL unmodified.</li>
+  <li><a href="http://www.rom-logicware.com" target="_blank">Papyrus</a> seems to use parts of GBM source code.<br>
+  <li>IBM WebExplorer uses the Bitmap, GIF and XBM handling parts of
+      GBM to some degree - in <code>webexwin.dll</code>, around byte offset
+      86924 (in my copy) are a whole load of GBM error strings.</li>
+  <li>IBM VisualAge C++ 3.0 for OS/2 uses large wedges of GBM source
+      code. I think they're using it in their supplied <code>class
+      IGBitmap</code>. This is apparent from the object filenames listed in
+      <code>\ibmcpp\iocdll\cppoou3.rsp</code> and the exported function
+      names in <code>\ibmcpp\iocdll\cppoou3.def</code>.</li>
+  <li>The IBM Person to Person personal conferencing system for OS/2
+      used the PCX and TIFF parts of GBM, and I think the AIX variant used
+      whole loads more.</li>
+  <li>BITMAP32, a bitmap viewer for OS/2 PM, uses GBM.DLL unmodified.
+      Because the IBM Developer Connection shipped BITMAP32, they ship GBM
+      too.</li>
+  <li>BluePaint, an OS/2 PM painting program, being
+      developed for Shareware (I think) uses GBM.DLL unmodified.</li>
+</ul>
+
+</body>
+</html>
+

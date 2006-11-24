@@ -1,0 +1,59 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMDLG (GBM File Dialog)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBMDLG - File Dialog for OS/2 and eComStation</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>GBMDLG is a DLL which programs may use to select bitmap filenames to load or save.
+Includes IPF help applicable to the process, and which documents the formats
+and levels of support given by GBM.</p>
+
+<p>GBMDLG is used by GBMV2 but can be easily used by developers of other programs.</p>
+
+<h3>Enhancements in latest GBMDLG compared to the original version</h3>
+
+<ul>
+  <li>English and a German version of the GBM file dialog (applies also to the online context help).
+  <li>Bitmap preview within the file dialog
+  <li>Look &amp; feel has been changed to fit to Warp 4 and eComStation GUI
+    <ul>
+      <li>Dialogs now use 9.WarpSans font
+      <li>Resource files for compiling 8.Helv font dialogs are part of the package (use rc.exe)
+      <li>REXX adapter DLL available (<a href="gbm_gbmdlgrx.html">GBMDLGRX</a>)</li>
+    </ul>
+</ul>
+<br>
+
+
+<h2 style="color: rgb(0, 153, 0);">Installing GBMDLG</h2>
+
+<p>Just unzip the GBMOS2PM package and copy the <code>gbmdlg.dll</code>
+and <code>gbmdlg.hlp</code> files into the directory required by the
+application that can make use of it. Examples of such applications
+are GBMV2 and Mesa2.</p>
+
+<p>If you've already got the GBMOS2 package installed into a directory,
+you might as well put these new files in there too.</p>
+
+<p>GBMV2 needs <code>gbm.dll</code> which is part of the GBMOS2 package.
+Either copy  it into the same directory as the application (e.g. gbmv2.exe)
+or to a directory defined in LIBPATH in the CONFIG.SYS.</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">GBMDLG Screenshots</h2>
+
+<table border="0">
+  <tr>
+   <td align="right">Bitmap file dialog box:</td>
+   <td><img src="../images/gbmdlg_window.png" alt="GBMDLG bitmap file dialog box" title="GBMDLG bitmap file dialog box"></td>
+  </tr>
+</table>
+
+
+</body>
+</html>

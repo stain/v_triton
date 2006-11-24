@@ -1,0 +1,39 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBMRX (REXX adapter for GBM.DLL)</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBMRX - A REXX adapter for GBM.DLL</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>GBMRX is a REXX adapter DLL for OS/2 and eComStation which
+REXX programs may use to load or save all bitmap file formats
+supported by the GBM.DLL (to/from a file).
+</p>
+<p>
+Almost full feature set of GBM.DLL is provided by the REXX API.
+I/O remapping is not supported due to language restrictions.
+</p>
+<p>
+For being able to use it, the following additional files are required:
+</p>
+<ul>
+  <li>GBM.DLL version 1.35 or higher (GBM Bitmap Format Handler)<br>
+      (version below will work but querying the number of pages
+      within the bitmap will fail)</li>
+</ul>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Installing GBMRX</h2>
+
+<p>Just unzip the GBMOS2 package and copy the <code>gbm.dll</code>
+file into the same directory as <code>gbmrx.dll</code> and add
+this directory to the LIBPATH statement in CONFIG.SYS in case
+it is not already in there.
+</p>
+
+</body>
+</html>

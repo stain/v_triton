@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM PM-Tools Installation</title>
+</head>
+<body>
+
+<h1 style="color: rgb(204, 0, 0);">GBM PM-Tools Installation</h1>
+
+<p>
+The following chapters describe the installation procedure for
+the GBM PM-Tools on OS/2 and eComStation.
+</p>
+
+<p>
+All applications included in this package require a version of GBM.DLL
+higher than version 1.11. Recommended is GBM.DLL 1.35 or higher.
+</p>
+
+<p>
+Depending on the applications you want to use, copy the following
+files into an empty directory. For the PM applications GBMV and GBMV2
+German and English versions are available.
+</p>
+
+<ul>
+ <li><b>GBMV:</b><p>Required files: <code>gbmv.exe</code>, <code>gbm.dll</code></p>
+ </li>
+
+ <li><b>GBMV2:</b><p>Required files: <code>gbmv2.exe</code> , <code>gbmv2.hlp</code>,
+                                     <code>gbmdlg.dll</code>, <code>gbmdlg.hlp</code>,
+                                     <code>gbm.dll</code></p>
+ </li>
+
+ <li><b>GBMDLG:</b><p>Required files: <code>gbmdlg.dll</code>, <code>gbmdlg.hlp</code><br>
+                      Developers who want to use it in their own programs need
+                      additionally <code>gbm.h</code>, <code>gbmdlg.h</code>, <code>gbmdlg.lib</code>.</p>
+ </li>
+
+ <li><b>GBMLOGO:</b><p>Required files: <code>gbmlogo.exe</code>, <code>gbm.dll</code></p>
+ </li>
+
+ <li><b>GBMVFSA:</b><p>Required files: <code>gbmvfsa.exe</code>, <code>gbm.dll</code></p>
+ </li>
+</ul>
+
+<p>
+There is a REXX script included (gbmwpobj.cmd) that creates desktop
+icons for <b>GBMV</b> and <b>GBMV2</b>. Simply copy it to their installation directory
+and run it.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Accessing all tools from everywhere</h2>
+
+<p>GBM.DLL can be installed at a central location of the system so that
+it is found in the paths defined by LIBPATH in CONFIG.SYS. Thus sharing
+between all programs of this package and the programs from the gbmos2
+(the command line tools) package is possible.
+</p>
+<p>
+<span style="color: red;">
+If you're using eComStation 1.2 or 1.2R please read the special notes for
+installing GBM to this system <a href="gbm_tools_install.html">here</a>.
+</span>
+</p>
+
+<b>Note:</b>
+<p>
+ If gbmv.exe and gbmv2.exe should be run from <b>everywhere</b> on the command line
+ or a different <b>work directory in the WPS program object</b> than the program
+ installation directory should be used, it is necessary to add the installation
+ directory to some environment variables in CONFIG.SYS.
+</p>
+<p>The following changes are necessary:
+   (It is assumed that the installation directory is D:\GBM)
+</p>
+<ol>
+  <li><p>Add D:\GBM to the end of the line beginning with SET PATH separated
+      by ; to the previous parameter.<br>
+      (e.g. <code>SET PATH=C:\OS2;D:\GBM</code>)</p>
+  </li>
+
+  <li><p>Add D:\GBM to the end of the line beginning with SET HELP separated
+      by ; to the previous parameter.  This is necessary so that the system
+      can find GBMV2.HLP and GBMDLG.HLP.<br>
+      (e.g. <code>SET HELP=C:\OS2\HELP;D:\GBM</code>)</p>
+  </li>
+
+  <li><p>Add D:\GBM to the end of the line beginning with LIBPATH separated
+   by ; to the previous parameter. This is necessary so that the system
+   can find GBM.DLL and GBMDLG.DLL.<br>
+   (e.g. <code>LIBPATH=.;C:\OS2\DLL;D:\GBM)</code></p>
+  </li>
+
+  <li><p>Reboot.</p>
+  </li>
+
+  <li><p>For this step you need gbmver.exe. It is included in the GBM base
+      package only, which you have already as you have GBM.DLL. Copy it
+      into the installation directory if it's not already there.<br><br>
+
+      Open a command line and go to a directory OTHER THAN the installation.
+      Then start gbmver.exe as if it would be in this directory.
+      It should report the location and the version of GBM.DLL as well
+      as the location of GBMDLG.DLL (GBM File Dialog).
+      Verify that the reported files are the installed versions. If the
+      reported files are found in a different path, do a file search
+      for GBM.DLL or GBMDLG.DLL on your system and check for duplicates
+      or older versions.<br><br>
+
+      If an older version of GBM.DLL is found (version must be higher than 1.11 !!!),
+      you can replace it with the GBM.DLL from the GBM base package.
+      Alternatively modify the LIBPATH statement in CONFIG.SYS so that
+      the correct path to GBM.DLL and GBMDLG.DLL is placed before all other
+      versions. After the changes are done, check again with gbmver.exe.</p>
+  </li>
+</ol>
+
+</body>
+</html>
+

@@ -1,0 +1,80 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey</h1>
+<h2 style="color: rgb(0, 153, 0);">Testing your installation</h2>
+
+<p>
+The following table shows a TIF and a PNM image via the GBM plugin for Mozilla.
+Beside each of the 2 images a reference image is shown by the browser rather than
+the plugin so that you can easily compare the results.
+</p>
+<p>
+You need at least GBM.DLL version 1.42. Only then the PNM
+images will be shown.
+</p>
+<br>
+
+<p>
+<b>The table should be correctly shown by all browsers (also old Netscape)</b>
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tr align="center">
+  <th>Image type</th>
+  <th>Reference</th>
+  <th>via GBM plugin </th>
+</tr>
+<tr align="center">
+  <td>TIF</td>
+  <td><img src="../images/gbm_plugin_mozilla_test.gif" alt="GIF image"></td>
+  <td><embed src="../images/gbm_plugin_mozilla_test.tif" type="image/tiff" width="32" height="32" alt="TIF image"></embed></td>
+</tr>
+<tr align="center">
+  <td>PNM</td>
+  <td><img src="../images/gbm_plugin_mozilla_test2.gif" alt="GIF image"></td>
+  <td><embed src="../images/gbm_plugin_mozilla_test2.pnm" type="image/x-portable-anymap" width="32" height="32" alt="PNM image"></embed></td>
+</tr>
+</table>
+<p>
+The TIF and PNM images shown by the GBM plugin are referenced by the <code>EMBED</code> tag
+which was never part of the HTML standard but is the only way to embed multimedia objects
+in older browsers. It is still understood by current browsers.
+</p>
+<br>
+
+<p>
+<b>The table should be correctly shown by all newer browsers that understand the OBJECT tag</b>
+</p>
+<table border="3" cellpadding="2" cellspacing="0">
+<tr align="center">
+  <th>Image type</th>
+  <th>Reference</th>
+  <th>via GBM plugin </th>
+</tr>
+<tr align="center">
+  <td>TIF</td>
+  <td><img src="../images/gbm_plugin_mozilla_test.gif" alt="GIF image"></td>
+  <td><object data="../images/gbm_plugin_mozilla_test.tif" type="image/tiff" width="32" height="32">
+      Your browser cannot display this object!
+    </object>
+  </td>
+</tr>
+<tr align="center">
+  <td>PNM</td>
+  <td><img src="../images/gbm_plugin_mozilla_test2.gif" alt="GIF image"></td>
+  <td><object data="../images/gbm_plugin_mozilla_test2.pnm" type="image/x-portable-anymap" width="32" height="32">
+      Your browser cannot display this object!
+    </object>
+  </td>
+</tr>
+</table>
+<br>
+
+</body>
+</html>
+

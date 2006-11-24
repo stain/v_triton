@@ -1,0 +1,21 @@
+Triton - ToDo
+-------------
+
+AudioMixer:
+- Test what happens if a zero length buffer is given into the AudMix system!
+- Reverse playback!
+
+- Remove restriction of source audio format (handle non-16bits-44KHz-stereo)
+- Remove restriction of destination audio format
+- Use MMX instructions for saturation and at other places
+
+MMIO:
+- Create documentations:
+  - How to compile (dependencies, etc...)
+  - Docs for users (Using MMIO)
+  - Docs for plugin developers (Extending MMIO)
+- Create OGG Vorbis plugins (OGG  demuxer, Vorbis decoder)
+- Create a video decoder plugin (possibly DivX?)
+- Create a video output plugin
+- Check what happens if the libavcodec-based plugin is loaded and used twice at
+  the same time in one process, because it has statics and frees them!

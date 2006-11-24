@@ -1,0 +1,135 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html>
+<head>
+  <meta http-equiv="CONTENT-TYPE" content="text/html; charset=iso-8859-1">
+  <link rel="shortcut icon" type="image/gif" href="../images/favicon.gif">
+  <title>Heiko's Homepage - GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey</title>
+</head>
+<body>
+<h1 style="color: rgb(204, 0, 0);">GBM plugin for Netscape/Mozilla/Firefox/SeaMonkey</h1>
+<h2 style="color: rgb(0, 153, 0);">Introduction<br></h2>
+
+<p>
+This is a plugin for the Webbrowsers Netscape, Mozilla, Firefox and
+SeaMonkey available for OS/2 and eComStation that extends them with
+the support of reading all bitmap formats supported by GBM.DLL.
+</p>
+<p>
+For being able to use it, the following additional files are required:
+</p>
+<ul>
+  <li>Netscape, Mozilla, Firefox or SeaMonkey<br>
+      The plugin has been tested with Firefox 1.5.0.5, SeaMonkey 1.0.3,
+      Netscape 4.61 and even Netscape 2.02 but it should work with other versions as well.
+      Printing is only supported on Mozilla/Firefox/SeaMonkey.
+  </li>
+  <li>GBM.DLL (GBM Bitmap Format Handler) version 1.35 or higher except 1.41</li>
+  <li>Optionally GBMDLG.DLL (GBM File Dialog)</li>
+</ul>
+<p>
+<b>Note:</b><br>GBM.DLL version 1.41 must not be used as it contains a compiler
+optimization issue that reduces stability. When used together
+with the GBM plugin, the browser might crash when opening bitmaps.
+Please upgrade to GBM.DLL version 1.42 or higher.
+</p>
+<p>
+<b>Note:</b><br>This plugin requires so far that the browser cache is enabled.
+Further version might be able to directly stream the images into
+the system memory.
+</p>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Supported features</h2>
+<p>
+There is the embedded mode with reduced functionality and the fullscreen mode
+with full functionality.
+</p>
+Fullscreen mode viewer with a load of features:
+<ul>
+  <li>menus, popup menu, scrollers</li>
+  <li>variable scaled preview</li>
+  <li>transformations mirror/transpose/rotate</li>
+  <li>multipage navigation</li>
+  <li>bitmap format info dialog</li>
+  <li>save the shown page to any GBM supported bitmap file format</li>
+  <li>uses GBM File Dialog if found, otherwise OS/2 File Dialog is used</li>
+  <li>English and German localized with autodetection via LANG variable</li>
+</ul>
+<br>
+
+Embedded mode viewer with reduced functionality of the fullscreen mode viewer:
+<ul>
+  <li>popup menu</li>
+  <li>transformations mirror</li>
+  <li>multipage navigation</li>
+  <li>bitmap format info dialog</li>
+  <li>save the shown page to any GBM supported bitmap file format</li>
+  <li>uses GBM File Dialog if found, otherwise OS/2 File Dialog is used</li>
+  <li>printing of embedded bitmaps is supported on Mozilla/Firefox/SeaMonkey</li>
+  <li>English and German localized with autodetection via LANG variable</li>
+</ul>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Installing GBM for Netscape/Mozilla/Firefox/SeaMonkey</h2>
+
+<p>Simply copy <code>npgbm.dll</code> into the plugin directory of your browser.
+Please check the requirements listed for <code>gbm.dll</code> above.
+Copy <code>gbm.dll</code> to a directory somewhere in your LIBPATH (defined in CONFIG.SYS).
+</p>
+<p>
+The plugin will try to use the GBM File Dialog if it is found somewhere
+in the LIBPATH. If it is not found, the standard OS/2 file dialog will be
+used. Save options for bitmap export cannot be specified in the OS/2 file dialog
+and thus the plugin will use the default export options of each bitmap format.
+</p>
+<p>
+<b>Testing the plugin:</b><br>
+You can test the correct installation of the GBM plugin with the links
+provided below. You need at least GBM.DLL version 1.42. Only then the PNM
+images will be shown.
+</p>
+<ul>
+  <li><a href="gbm_plugin_mozilla_test_embed.html"    target="_blank">Show embedded TIF and PNM images</a></li>
+  <li><a href="../images/gbm_plugin_mozilla_test.tif" target="_blank">Show a TIF image in fullscreen mode</a></li>
+</ul>
+<br>
+
+<a name="LICENSE"></a><h2 style="color: rgb(0, 153, 0);">License of GBM for Netscape/Mozilla/Firefox/SeaMonkey</h2>
+
+<p>Copyright (C) 2006 Heiko Nitzsche</p>
+<p>
+This software is provided 'as-is', without any express or implied
+warranty.  In no event will the author be held liable for any damages
+arising from the use of this software.
+</p>
+<p>
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it
+freely, subject to the following restrictions:
+</p>
+<ol>
+  <li>The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.</li>
+  <li>Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.</li>
+  <li>This notice may not be removed or altered from any source distribution.</li>
+</ol>
+<br>
+
+<h2 style="color: rgb(0, 153, 0);">Screenshots</h2>
+
+<p>SeaMonkey showing embedded PNM and TIF images by using the GBM plugin:</p>
+<img src="../images/gbm_mozilla_embedded.png" alt="GBM plugin embedded" title="GBM plugin embedded">
+
+<hr>
+
+<p>SeaMonkey showing a PNM image fullscreen by using the GBM plugin:</p>
+<img src="../images/gbm_mozilla_full.png" alt="GBM plugin fullscreen" title="GBM plugin fullscreen">
+
+<br>
+
+</body>
+</html>
+
