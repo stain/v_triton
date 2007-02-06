@@ -561,8 +561,18 @@ static int ParseStrfChunkData(AviDemuxInstance_p pPluginInstance, unsigned int u
         pPluginInstance->pCurrStreamDesc->bAviStreamFormatFound = 1;
 
         /* Prepare MMIO-specific stream-info structure */
-        pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSCount = pPluginInstance->aviHeader.uiRate;
-        pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSDenom = pPluginInstance->aviHeader.uiScale;
+        if ((pPluginInstance->aviHeader.uiRate == 0) &&
+            (pPluginInstance->aviHeader.uiScale == 0))
+        {
+          /* Use the Scale/Rate value from stream header */
+          pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSCount = pPluginInstance->aviHeader.uiRate;
+          pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSDenom = pPluginInstance->aviHeader.uiScale;
+        } else
+        {
+          /* Use the Scale/Rate value from avi header */
+          pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSCount = pPluginInstance->pCurrStreamDesc->aviStreamHeader.uiRate;
+          pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSDenom = pPluginInstance->pCurrStreamDesc->aviStreamHeader.uiScale;
+        }
         pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iWidth = pPluginInstance->pCurrStreamDesc->formatSpecific.videoFormat.uiWidth;
         pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iHeight = pPluginInstance->pCurrStreamDesc->formatSpecific.videoFormat.uiHeight;
         MMIOPsGuessPixelAspectRatio(pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iWidth,
@@ -1918,8 +1928,8 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL avidemux_Link(void *pInstance, char *pchN
         pESInfo->iStreamType = MMIO_STREAMTYPE_VIDEO;
         /* No problem what stream we give here, as everything depends on what the */
         /* video decoder produces. So, we give here something. */
-        pESInfo->StreamInfo.VideoStruct.iFPSCount = pPluginInstance->aviHeader.uiRate;
-        pESInfo->StreamInfo.VideoStruct.iFPSDenom = pPluginInstance->aviHeader.uiScale;
+        pESInfo->StreamInfo.VideoStruct.iFPSCount = pPluginInstance->pStreamDescriptions[uiESNum].aviStreamHeader.uiRate;
+        pESInfo->StreamInfo.VideoStruct.iFPSDenom = pPluginInstance->pStreamDescriptions[uiESNum].aviStreamHeader.uiScale;
         pESInfo->StreamInfo.VideoStruct.iWidth = pPluginInstance->pStreamDescriptions[uiESNum].formatSpecific.videoFormat.uiWidth;
         pESInfo->StreamInfo.VideoStruct.iHeight = pPluginInstance->pStreamDescriptions[uiESNum].formatSpecific.videoFormat.uiHeight;
         MMIOPsGuessPixelAspectRatio(pESInfo->StreamInfo.VideoStruct.iWidth,
