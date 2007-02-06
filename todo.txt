@@ -19,3 +19,7 @@ MMIO:
 - Create a video output plugin
 - Check what happens if the libavcodec-based plugin is loaded and used twice at
   the same time in one process, because it has statics and frees them!
+- Modify GBM-based image decoder plugin to use the GBM symbols dynamically
+  instead of simple dynamic linking, because the VAC Open Class libraries also
+  use GBM and this may result in symbol collision in WPS processes (and who
+  knows where else).
