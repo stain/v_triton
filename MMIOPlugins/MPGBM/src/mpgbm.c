@@ -51,6 +51,7 @@ typedef struct mmioPluginInstance_s
   int                      iPlaybackDirection;
   int                      iCurrImageNum;
   int                      iNumImages;
+  int                      bDiscontinuity;
 
   mmioMediaSpecificInfo_p  pSource;
   void                    *pSourceInstance;
@@ -58,9 +59,10 @@ typedef struct mmioPluginInstance_s
   mmioURLSpecificInfo_p    pURLInfo;
 
   int                      iGuessedFormat;
+  int                      iImageWidth;
+  int                      iImageHeight;
+  unsigned char           *pLastDecodedFrame;
   GBMFT                    gbmDescriptiveFormat;
-  GBM                      gbmImageInfo;
-  GBMRGB                   gbmRgb[0x100];
 
 } mmioPluginInstance_t, *mmioPluginInstance_p;
 
@@ -111,14 +113,34 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   unsigned char *pchDecodedData;
   mmioRSFormatRequest_t rfRequestedFormat;
   int iXPos, iYPos;
+  int iXStartOffset, iYStartOffset;
+  unsigned char *pchDest;
   unsigned char *pchDestR;
   unsigned char *pchDestG;
   unsigned char *pchDestB;
   unsigned char *pchDestA;
   unsigned char *pchSource;
+  GBM gbmImageInfo;
+  GBMRGB gbmRgb[0x100];
 
   if ((!pInstance) || (!pDataDesc) || (!ppDataBuf) || (!*ppDataBuf))
     return MMIO_ERROR_INVALID_PARAMETER;
+
+  /* Check if the output buffer is big enough */
+  if (llDataBufSize<(pPluginInstance->iImageWidth * pPluginInstance->iImageHeight * 4))
+  {
+    /* Output buffer too small! */
+    return MMIO_ERROR_BUFFER_TOO_SMALL;
+  }
+
+  /* Do some preparatinos for the first frame */
+  if (pPluginInstance->pLastDecodedFrame == NULL)
+  {
+    pPluginInstance->pLastDecodedFrame = MMIOmalloc(pPluginInstance->iImageWidth * pPluginInstance->iImageHeight * 4);
+    if (!pPluginInstance->pLastDecodedFrame)
+      return MMIO_ERROR_OUT_OF_MEMORY;
+    memset(pPluginInstance->pLastDecodedFrame, 0, pPluginInstance->iImageWidth * pPluginInstance->iImageHeight * 4);
+  }
 
   /* Decode the current image, if possible */
   /* Get the image number we have to decode and prepare the next number */
@@ -150,7 +172,7 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   if (gbm_read_header(pPluginInstance->pURLInfo->achURL,
                       (int) pPluginInstance,
                       pPluginInstance->iGuessedFormat,
-                      &(pPluginInstance->gbmImageInfo),
+                      &gbmImageInfo,
                       achOptions) != GBM_ERR_OK)
   {
     /* Could not read the required header */
@@ -158,21 +180,14 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   }
 
   /* Read the palette next */
-  memset(pPluginInstance->gbmRgb, 0, sizeof(pPluginInstance->gbmRgb));
+  memset(gbmRgb, 0, sizeof(gbmRgb));
   if (gbm_read_palette((int) pPluginInstance,
                        pPluginInstance->iGuessedFormat,
-                       &(pPluginInstance->gbmImageInfo),
-                       pPluginInstance->gbmRgb) != GBM_ERR_OK)
+                       &gbmImageInfo,
+                       gbmRgb) != GBM_ERR_OK)
   {
     /* Could not read the palette information */
     return MMIO_ERROR_UNKNOWN;
-  }
-
-  /* Check if the output buffer is big enough */
-  if (llDataBufSize<(pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.h * 4))
-  {
-    /* Output buffer too small! */
-    return MMIO_ERROR_BUFFER_TOO_SMALL;
   }
 
   /* Create the requested format structure */
@@ -183,24 +198,24 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
     /* Red component */
     rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] = 0;
     rfRequestedFormat.VideoStruct.aiFieldNextPixel[0] = 4;
-    rfRequestedFormat.VideoStruct.aiFieldPitch[0] = pPluginInstance->gbmImageInfo.w * 4;
+    rfRequestedFormat.VideoStruct.aiFieldPitch[0] = pPluginInstance->iImageWidth * 4;
     /* Green component */
     rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] = 1;
     rfRequestedFormat.VideoStruct.aiFieldNextPixel[1] = 4;
-    rfRequestedFormat.VideoStruct.aiFieldPitch[1] = pPluginInstance->gbmImageInfo.w * 4;
+    rfRequestedFormat.VideoStruct.aiFieldPitch[1] = pPluginInstance->iImageWidth * 4;
     /* Blue component */
     rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] = 2;
     rfRequestedFormat.VideoStruct.aiFieldNextPixel[2] = 4;
-    rfRequestedFormat.VideoStruct.aiFieldPitch[2] = pPluginInstance->gbmImageInfo.w * 4;
+    rfRequestedFormat.VideoStruct.aiFieldPitch[2] = pPluginInstance->iImageWidth * 4;
     /* Alpha component */
     rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] = 3;
     rfRequestedFormat.VideoStruct.aiFieldNextPixel[3] = 4;
-    rfRequestedFormat.VideoStruct.aiFieldPitch[3] = pPluginInstance->gbmImageInfo.w * 4;
+    rfRequestedFormat.VideoStruct.aiFieldPitch[3] = pPluginInstance->iImageWidth * 4;
   }
 
   /* Calculate needed memory and allocate memory for the decoded data */
-  iStride = (((pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.bpp) + 31) / 32) * 4;
-  pchDecodedData = MMIOmalloc(iStride * pPluginInstance->gbmImageInfo.h);
+  iStride = (((gbmImageInfo.w * gbmImageInfo.bpp) + 31) / 32) * 4;
+  pchDecodedData = MMIOmalloc(iStride * gbmImageInfo.h);
   if (!pchDecodedData)
   {
     /* Out of memory! */
@@ -210,7 +225,7 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   /* Read the image data then */
   if (gbm_read_data((int) pPluginInstance,
                     pPluginInstance->iGuessedFormat,
-                    &(pPluginInstance->gbmImageInfo),
+                    &gbmImageInfo,
                     pchDecodedData) != GBM_ERR_OK)
   {
     /* Could not decode image */
@@ -218,8 +233,20 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
     return MMIO_ERROR_UNKNOWN;
   }
 
+  /* Calculate X and Y Start Offsets */
+  iXStartOffset = (pPluginInstance->iImageWidth - gbmImageInfo.w)/2;
+  iYStartOffset = (pPluginInstance->iImageHeight - gbmImageInfo.h)/2;
+  /*
+  fprintf(stderr, "Decoded: %d x %d, FullSize: %d x %d, Offsets: %d x %d, BPP: %d        \n",
+          gbmImageInfo.w, gbmImageInfo.h,
+          pPluginInstance->iImageWidth,
+          pPluginInstance->iImageHeight,
+          iXStartOffset, iYStartOffset,
+          gbmImageInfo.bpp);
+  */
+
   /* Convert the image data to the requested format */
-  switch (pPluginInstance->gbmImageInfo.bpp)
+  switch (gbmImageInfo.bpp)
   {
     case 1:
         /* 1 BPP (Palettized) */
@@ -227,34 +254,23 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
           int iColorIndex;
 
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
-              iColorIndex = (pchSource[iXPos/8] >> (iXPos % 8)) & 1;
+              iColorIndex = (pchSource[iXPos/8] >> (8 - (iXPos % 8))) & 0x01;
 
-              *pchDestR = pPluginInstance->gbmRgb[iColorIndex].r;
-              *pchDestG = pPluginInstance->gbmRgb[iColorIndex].g;
-              *pchDestB = pPluginInstance->gbmRgb[iColorIndex].b;
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = gbmRgb[iColorIndex].r;
+              *(pchDest++) = gbmRgb[iColorIndex].g;
+              *(pchDest++) = gbmRgb[iColorIndex].b;
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -267,34 +283,23 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
           int iColorIndex;
 
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
-              iColorIndex = (pchSource[iXPos/4] >> ((iXPos % 4)*2)) & 3;
+              iColorIndex = (pchSource[iXPos/4] >> (6 - (iXPos % 4)*2)) & 0x03;
 
-              *pchDestR = pPluginInstance->gbmRgb[iColorIndex].r;
-              *pchDestG = pPluginInstance->gbmRgb[iColorIndex].g;
-              *pchDestB = pPluginInstance->gbmRgb[iColorIndex].b;
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = gbmRgb[iColorIndex].r;
+              *(pchDest++) = gbmRgb[iColorIndex].g;
+              *(pchDest++) = gbmRgb[iColorIndex].b;
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -307,34 +312,23 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
           int iColorIndex;
 
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
-              iColorIndex = (pchSource[iXPos/2] >> ((iXPos % 2)*4)) & 15;
+              iColorIndex = (pchSource[iXPos/2] >> (4 - (iXPos % 2)*4)) & 0x0f;
 
-              *pchDestR = pPluginInstance->gbmRgb[iColorIndex].r;
-              *pchDestG = pPluginInstance->gbmRgb[iColorIndex].g;
-              *pchDestB = pPluginInstance->gbmRgb[iColorIndex].b;
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = gbmRgb[iColorIndex].r;
+              *(pchDest++) = gbmRgb[iColorIndex].g;
+              *(pchDest++) = gbmRgb[iColorIndex].b;
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -347,34 +341,23 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
           int iColorIndex;
 
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
               iColorIndex = pchSource[iXPos];
 
-              *pchDestR = pPluginInstance->gbmRgb[iColorIndex].r;
-              *pchDestG = pPluginInstance->gbmRgb[iColorIndex].g;
-              *pchDestB = pPluginInstance->gbmRgb[iColorIndex].b;
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = gbmRgb[iColorIndex].r;
+              *(pchDest++) = gbmRgb[iColorIndex].g;
+              *(pchDest++) = gbmRgb[iColorIndex].b;
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -385,32 +368,21 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
         /* 24 BPP (BGR) */
         {
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
-              *pchDestR = pchSource[iXPos*3 + 2];
-              *pchDestG = pchSource[iXPos*3 + 1];
-              *pchDestB = pchSource[iXPos*3 + 0];
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = pchSource[iXPos*3 + 2];
+              *(pchDest++) = pchSource[iXPos*3 + 1];
+              *(pchDest++) = pchSource[iXPos*3 + 0];
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -421,32 +393,21 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
         /* 32 BPP (BGRA) */
         {
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
-              *pchDestR = pchSource[iXPos*4 + 3];
-              *pchDestG = pchSource[iXPos*4 + 2];
-              *pchDestB = pchSource[iXPos*4 + 1];
-              *pchDestA = pchSource[iXPos*4 + 0];
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = pchSource[iXPos*4 + 3];
+              *(pchDest++) = pchSource[iXPos*4 + 2];
+              *(pchDest++) = pchSource[iXPos*4 + 1];
+              *(pchDest++) = pchSource[iXPos*4 + 0];
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -457,33 +418,22 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
         /* 48 BPP (BGR, 2 bytes per pixel) */
         {
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
               unsigned short *pusSource = (unsigned short *) pchSource;
-              *pchDestR = pusSource[iXPos*3 + 2] / 256;
-              *pchDestG = pusSource[iXPos*3 + 1] / 256;
-              *pchDestB = pusSource[iXPos*3 + 0] / 256;
-              *pchDestA = 0;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = pusSource[iXPos*3 + 2] / 256;
+              *(pchDest++) = pusSource[iXPos*3 + 1] / 256;
+              *(pchDest++) = pusSource[iXPos*3 + 0] / 256;
+              *(pchDest++) = 0;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -494,33 +444,22 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
         /* 64 BPP (BGRA, 2 bytes per pixel) */
         {
           /* Decoded image is upside down, so last line is the top. */
-          pchSource = pchDecodedData + (iStride * (pPluginInstance->gbmImageInfo.h-1));
+          pchSource = pchDecodedData + (iStride * (gbmImageInfo.h-1));
           /* Process all lines */
-          for (iYPos = 0; iYPos < pPluginInstance->gbmImageInfo.h; iYPos++)
+          for (iYPos = 0; iYPos < gbmImageInfo.h; iYPos++)
           {
-            /* Set destination pointers */
-            pchDestR =
-              ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
-            pchDestG = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
-            pchDestB = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
-            pchDestA = ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
-              (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+            /* Set destination pointer */
+            pchDest =
+              pPluginInstance->pLastDecodedFrame +
+              ((iYStartOffset+iYPos) * pPluginInstance->iImageWidth + iXStartOffset) * 4;
             /* Go through all pixels of one line */
-            for (iXPos = 0; iXPos < pPluginInstance->gbmImageInfo.w; iXPos++)
+            for (iXPos = 0; iXPos < gbmImageInfo.w; iXPos++)
             {
               unsigned short *pusSource = (unsigned short *) pchSource;
-              *pchDestR = pusSource[iXPos*4 + 3] / 256;
-              *pchDestG = pusSource[iXPos*4 + 2] / 256;
-              *pchDestB = pusSource[iXPos*4 + 1] / 256;
-              *pchDestA = pusSource[iXPos*4 + 0] / 256;
-
-              pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
-              pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
-              pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
-              pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+              *(pchDest++) = pusSource[iXPos*4 + 3] / 256;
+              *(pchDest++) = pusSource[iXPos*4 + 2] / 256;
+              *(pchDest++) = pusSource[iXPos*4 + 1] / 256;
+              *(pchDest++) = pusSource[iXPos*4 + 0] / 256;
             }
             /* Go to next line in source */
             pchSource -= iStride;
@@ -536,6 +475,38 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   /* Free the allocated memory */
   MMIOfree(pchDecodedData);
 
+  /* Now that we have the full decoded image (containing the previous images too, if needed) */
+  /* we should move the pixels into the destination buffer, sorted to match that format. */
+  pchSource = pPluginInstance->pLastDecodedFrame;
+  for (iYPos = 0; iYPos < pPluginInstance->iImageHeight; iYPos++)
+  {
+    pchDestR =
+      ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[0] +
+      (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[0]);
+    pchDestG =
+      ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[1] +
+      (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[1]);
+    pchDestB =
+      ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[2] +
+      (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[2]);
+    pchDestA =
+      ((unsigned char *) (*ppDataBuf)) + rfRequestedFormat.VideoStruct.aiFieldStartOffset[3] +
+      (iYPos * rfRequestedFormat.VideoStruct.aiFieldPitch[3]);
+
+    for (iXPos = 0; iXPos < pPluginInstance->iImageWidth; iXPos++)
+    {
+      *pchDestR = *(pchSource++);
+      *pchDestG = *(pchSource++);
+      *pchDestB = *(pchSource++);
+      *pchDestA = *(pchSource++);
+
+      pchDestR += rfRequestedFormat.VideoStruct.aiFieldNextPixel[0];
+      pchDestG += rfRequestedFormat.VideoStruct.aiFieldNextPixel[1];
+      pchDestB += rfRequestedFormat.VideoStruct.aiFieldNextPixel[2];
+      pchDestA += rfRequestedFormat.VideoStruct.aiFieldNextPixel[3];
+    }
+  }
+
   /* Update the current image number, if the decoding succeeded */
   if (pPluginInstance->iPlaybackDirection<0)
     pPluginInstance->iCurrImageNum--;
@@ -546,19 +517,24 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetOneFrame(void *pInstance, void 
   if (pDataDesc)
   {
     pDataDesc->llPTS = iImageNumToDecode * 1000LL / GBMDEC_EMULATED_FPS;
-    pDataDesc->llDataSize = pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.h * 4;
+    pDataDesc->llDataSize = pPluginInstance->iImageWidth * pPluginInstance->iImageHeight * 4;
     pDataDesc->StreamInfo.VideoStruct.iFPSCount = GBMDEC_EMULATED_FPS;
     pDataDesc->StreamInfo.VideoStruct.iFPSDenom = 1;
-    pDataDesc->StreamInfo.VideoStruct.iWidth = pPluginInstance->gbmImageInfo.w;
-    pDataDesc->StreamInfo.VideoStruct.iHeight = pPluginInstance->gbmImageInfo.h;
+    pDataDesc->StreamInfo.VideoStruct.iWidth = pPluginInstance->iImageWidth;
+    pDataDesc->StreamInfo.VideoStruct.iHeight = pPluginInstance->iImageHeight;
     pDataDesc->StreamInfo.VideoStruct.iPixelAspectRatioCount = 1;
     pDataDesc->StreamInfo.VideoStruct.iPixelAspectRatioDenom = 1;
-    pDataDesc->iExtraStreamInfo = 0;
+    if (pPluginInstance->bDiscontinuity)
+    {
+      pDataDesc->iExtraStreamInfo = MMIO_EXTRASTREAMINFO_STREAM_DISCONTINUITY;
+      pPluginInstance->bDiscontinuity = 0;
+    }
+    else
+      pDataDesc->iExtraStreamInfo = 0;
   }
 
   /* Return with success */
   return MMIO_NOERROR;
-
 }
 
 MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_GetStreamLength(void *pInstance, void *pRSID, long long *pllLength)
@@ -602,7 +578,7 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_SetPosition(void *pInstance, void 
   {
     pPluginInstance->iCurrImageNum =
       llPos /
-      (4LL * pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.w); /* 4 is for 4 bytes per pixel (RGBA) */
+      (4LL * pPluginInstance->iImageWidth * pPluginInstance->iImageHeight); /* 4 is for 4 bytes per pixel (RGBA) */
   }
 
   if (pPluginInstance->iCurrImageNum < 0)
@@ -619,8 +595,10 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_SetPosition(void *pInstance, void 
   {
     *pllPosFound =
       pPluginInstance->iCurrImageNum *
-      (4LL * pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.w); /* 4 is for 4 bytes per pixel (RGBA) */
+      (4LL * pPluginInstance->iImageWidth * pPluginInstance->iImageHeight); /* 4 is for 4 bytes per pixel (RGBA) */
   }
+
+  pPluginInstance->bDiscontinuity = 1;
 
   return MMIO_NOERROR;
 }
@@ -644,10 +622,10 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_DropFrames(void *pInstance, void *
   {
     llFrameAmount =
       llAmount /
-      (4LL * pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.w); /* 4 is for 4 bytes per pixel (RGBA) */
+      (4LL * pPluginInstance->iImageWidth * pPluginInstance->iImageHeight); /* 4 is for 4 bytes per pixel (RGBA) */
     llOldPos =
       pPluginInstance->iCurrImageNum *
-      (4LL * pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.w); /* 4 is for 4 bytes per pixel (RGBA) */
+      (4LL * pPluginInstance->iImageWidth * pPluginInstance->iImageHeight); /* 4 is for 4 bytes per pixel (RGBA) */
   }
 
   if (pPluginInstance->iPlaybackDirection<0)
@@ -671,10 +649,12 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_DropFrames(void *pInstance, void *
   {
     llNewPos =
       pPluginInstance->iCurrImageNum *
-      (4LL * pPluginInstance->gbmImageInfo.w * pPluginInstance->gbmImageInfo.w); /* 4 is for 4 bytes per pixel (RGBA) */
+      (4LL * pPluginInstance->iImageWidth * pPluginInstance->iImageHeight); /* 4 is for 4 bytes per pixel (RGBA) */
   }
 
   *pllDropped = llNewPos - llOldPos;
+
+  pPluginInstance->bDiscontinuity = 1;
 
   return MMIO_NOERROR;
 }
@@ -796,6 +776,9 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_Uninitialize(void *pInstance)
     return MMIO_ERROR_INVALID_PARAMETER;
 
   /* Free all our resources! */
+  if (pPluginInstance->pLastDecodedFrame)
+    MMIOfree(pPluginInstance->pLastDecodedFrame);
+
   MMIOfree(pPluginInstance);
 
   gbm_deinit();
@@ -808,6 +791,7 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_Examine(void *pInstance, mmioProce
   mmioPluginInstance_p pPluginInstance = pInstance;
   mmioMediaSpecificInfo_p pMediaInfo;
   mmioProcessTreeNode_p pURLNode;
+  int iImageNum;
 
   if ((!pInstance) || (!pNode) || (!ppExamineResult) || (pNode->iNodeType!=MMIO_NODETYPE_MEDIUM))
     return MMIO_ERROR_INVALID_PARAMETER;
@@ -864,14 +848,29 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_Examine(void *pInstance, mmioProce
   }
 
   /* Read bitmap header to get a general image information (resolution, etc...)*/
-  if (gbm_read_header(pPluginInstance->pURLInfo->achURL,
-                      (int) pPluginInstance,
-                      pPluginInstance->iGuessedFormat,
-                      &(pPluginInstance->gbmImageInfo),
-                      "") != GBM_ERR_OK)
+  /* We have to go through all the images and look for the greatest one */
+  pPluginInstance->iImageWidth = 0;
+  pPluginInstance->iImageHeight = 0;
+  for (iImageNum=0; iImageNum<pPluginInstance->iNumImages; iImageNum++)
   {
-    printf("[gbmdec_Examine] : Could not read header!\n");
-    return MMIO_ERROR_NOT_SUPPORTED;
+    char achOptions[32];
+    GBM  gbmImageInfo;
+
+    snprintf(achOptions, sizeof(achOptions),
+             "index=%d", iImageNum);
+    if (gbm_read_header(pPluginInstance->pURLInfo->achURL,
+                        (int) pPluginInstance,
+                        pPluginInstance->iGuessedFormat,
+                        &gbmImageInfo,
+                        achOptions) != GBM_ERR_OK)
+    {
+      printf("[gbmdec_Examine] : Could not read header!\n");
+      return MMIO_ERROR_NOT_SUPPORTED;
+    }
+    if (pPluginInstance->iImageWidth < gbmImageInfo.w)
+      pPluginInstance->iImageWidth = gbmImageInfo.w;
+    if (pPluginInstance->iImageHeight < gbmImageInfo.h)
+      pPluginInstance->iImageHeight = gbmImageInfo.h;
   }
 
   /* Create examine result */
@@ -991,14 +990,16 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_Link(void *pInstance, char *pchNee
   pESInfo->iStreamType = MMIO_STREAMTYPE_VIDEO;
   pESInfo->StreamInfo.VideoStruct.iFPSCount = GBMDEC_EMULATED_FPS;
   pESInfo->StreamInfo.VideoStruct.iFPSDenom = 1;
-  pESInfo->StreamInfo.VideoStruct.iWidth = pPluginInstance->gbmImageInfo.w;
-  pESInfo->StreamInfo.VideoStruct.iHeight = pPluginInstance->gbmImageInfo.h;
+  pESInfo->StreamInfo.VideoStruct.iWidth = pPluginInstance->iImageWidth;
+  pESInfo->StreamInfo.VideoStruct.iHeight = pPluginInstance->iImageHeight;
   pESInfo->StreamInfo.VideoStruct.iPixelAspectRatioCount = 1;
   pESInfo->StreamInfo.VideoStruct.iPixelAspectRatioDenom = 1;
   snprintf(pESInfo->achDescriptiveESFormat, sizeof(pESInfo->achDescriptiveESFormat),
-           "%dx%d RGBA",
+           "%dx%d %s (%s)",
            pESInfo->StreamInfo.VideoStruct.iWidth,
-           pESInfo->StreamInfo.VideoStruct.iHeight);
+           pESInfo->StreamInfo.VideoStruct.iHeight,
+           pPluginInstance->gbmDescriptiveFormat.short_name,
+           pPluginInstance->gbmDescriptiveFormat.long_name);
 
   snprintf(pNewES->achNodeOwnerOutputFormat, sizeof(pNewES->achNodeOwnerOutputFormat),
            "es_v_%s",
@@ -1054,14 +1055,15 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL gbmdec_Link(void *pInstance, char *pchNee
   pRSInfo->iStreamType = MMIO_STREAMTYPE_VIDEO;
   pRSInfo->StreamInfo.VideoStruct.iFPSCount = GBMDEC_EMULATED_FPS;
   pRSInfo->StreamInfo.VideoStruct.iFPSDenom = 1;
-  pRSInfo->StreamInfo.VideoStruct.iWidth = pPluginInstance->gbmImageInfo.w;
-  pRSInfo->StreamInfo.VideoStruct.iHeight = pPluginInstance->gbmImageInfo.h;
+  pRSInfo->StreamInfo.VideoStruct.iWidth = pPluginInstance->iImageWidth;
+  pRSInfo->StreamInfo.VideoStruct.iHeight = pPluginInstance->iImageHeight;
   pRSInfo->StreamInfo.VideoStruct.iPixelAspectRatioCount = 1;
   pRSInfo->StreamInfo.VideoStruct.iPixelAspectRatioDenom = 1;
   snprintf(pRSInfo->achDescriptiveRSFormat, sizeof(pRSInfo->achDescriptiveRSFormat),
-           "%dx%d RGBA",
+           "%dx%d RGBA (%s)",
            pRSInfo->StreamInfo.VideoStruct.iWidth,
-           pRSInfo->StreamInfo.VideoStruct.iHeight);
+           pRSInfo->StreamInfo.VideoStruct.iHeight,
+           pPluginInstance->gbmDescriptiveFormat.long_name);
 
   snprintf(pNewRS->achNodeOwnerOutputFormat, sizeof(pNewRS->achNodeOwnerOutputFormat),
            "rs_v_RGBA");
