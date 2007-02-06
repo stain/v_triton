@@ -43,9 +43,21 @@
 int bEndOfStream;
 int bShowPosition;
 int bTrickyPlay;
+int bLoopedPlay;
 mmioSystemTime_t timStartTime;
 int bEventThreadShutdownRequest;
 TPL_TID tidEventThread;
+
+#ifdef __OS2__
+void MorphToPM()
+{
+  PPIB pib;
+  DosGetInfoBlocks(NULL, &pib);
+
+  /* Change flag from VIO to PM: */
+  if (pib->pib_ultype==2) pib->pib_ultype = 3;
+}
+#endif
 
 void TPLCALL EventThreadFunc(void *param)
 {
@@ -54,6 +66,8 @@ void TPLCALL EventThreadFunc(void *param)
   int bFromMainStream;
   int iEventCode;
   long long llEventParm;
+  long long llLength = 0;
+  int iDirection = 0;
 
   printf("* Event thread started\n");
   while (!bEventThreadShutdownRequest)
@@ -62,19 +76,44 @@ void TPLCALL EventThreadFunc(void *param)
     {
       switch (iEventCode)
       {
+        case MMIO_STREAMGROUP_EVENT_CLOSE_REQUEST:
+          printf("* External close request, stopping playback.\n");
+          bEndOfStream = 1;
+          break;
+
         case MMIO_STREAMGROUP_EVENT_OUT_OF_DATA:
         case MMIO_STREAMGROUP_EVENT_ERROR_IN_STREAM:
-          printf("! Out Of Data or Error In Stream event\n");
-          bEndOfStream = 1;
-          printf("  (Setting Stream-Group direction to STOP in event processor thread)\n");
-          MMIOSetDirection(pStreamGroup, MMIO_DIRECTION_STOP);
+
+          if (iEventCode == MMIO_STREAMGROUP_EVENT_OUT_OF_DATA)
+            printf("! Out Of Data In Stream event\n");
+          else
+            printf("! Error In Stream event\n");
+
+          if (bLoopedPlay)
+          {
+            int iDirection;
+            MMIOGetDirection(pStreamGroup, &iDirection);
+            if (iDirection>=0)
+            {
+              printf("  (Seeking to beginning of stream)\n");
+              MMIOSetPosition(pStreamGroup, 0);
+            } else
+            {
+              printf("  (Seeking to end of stream)\n");
+              MMIOGetLength(pStreamGroup, &llLength);
+              MMIOSetPosition(pStreamGroup, llLength);
+            }
+          } else
+          {
+            bEndOfStream = 1;
+            printf("  (Setting Stream-Group direction to STOP in event processor thread)\n");
+            MMIOSetDirection(pStreamGroup, MMIO_DIRECTION_STOP);
+          }
           break;
 
         case MMIO_STREAMGROUP_EVENT_POSITION_INFO:
           if ((bShowPosition) && (bFromMainStream))
           {
-            long long llLength = 0;
-            int iDirection = 0;
             mmioSystemTime_t timNow;
 
             timNow = MMIOPsGetCurrentSystemTime();
@@ -146,15 +185,20 @@ int main(int argc, char *argv[])
   setbuf(stdout, NULL);
   setbuf(stderr, NULL);
 
+#ifdef __OS2__
+  MorphToPM();
+#endif
+
   /* Process command line parameters */
   if (argc<2)
   {
-    printf("Usage: mmiotest.exe <url> [pos] [trick]\n");
+    printf("Usage: mmiotest.exe <url> [pos] [trick] [loop]\n");
     return 1;
   }
 
   bShowPosition = 0;
   bTrickyPlay = 0;
+  bLoopedPlay = 0;
 
   if (argc>2)
   {
@@ -165,10 +209,12 @@ int main(int argc, char *argv[])
         bShowPosition = 1;
       if (argv[i][0] == 't')
         bTrickyPlay = 1;
+      if (argv[i][0] == 'l')
+        bLoopedPlay = 1;
     }
   }
 
-  printf("Parameters: ShowPosition=%d  TrickPlay = %d\n", bShowPosition, bTrickyPlay);
+  printf("Parameters: ShowPosition=%d  TrickPlay = %d  LoopedPlay = %d\n", bShowPosition, bTrickyPlay, bLoopedPlay);
   printf("\n");
   printf("* Usable keypress commands when running:\n");
   printf("  ESC : Stop testing\n");

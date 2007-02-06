@@ -5,7 +5,7 @@
 #
 # -----------------------------------------------------------------------------
 
-Build_Order = mmioinit mmiotest imagetest
+Build_Order = mmioinit mmiotest imagetest urlinfo
 
 # -----------------------------------------------------------------------------
 

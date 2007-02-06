@@ -1,0 +1,56 @@
+#
+# Makefile for MMIOTest to be compiled for OS/2 with OpenWatcom
+#
+
+TESTAPP_NAME = urlinfo
+TESTAPP_DESC = MMIO URL Information Shower Test application
+TESTAPP_OBJS = &
+	urlinfo.obj
+
+CFLAGS = -zq -bm -bt=OS2 -5r -fpi87 -fp5 -otexan -wx
+
+.before:
+ @set include=..\mmiocore\include;..\tpl\include;..\mmioplugins;$(%include);
+
+.extensions:
+.extensions: .obj .c .h
+
+all: Print_Module_Info $(TESTAPP_NAME).exe .symbolic .existsonly
+	@echo * Make finished, bye!
+
+clean: Print_Module_Info .symbolic
+ @if exist *.obj @del *.obj
+ @if exist *.lnk @del *.lnk
+ @if exist *.map @del *.map
+ @if exist *.err @del *.err
+
+Print_Module_Info: .symbolic .existsonly
+ @echo --- $(TESTAPP_DESC) ($(TESTAPP_NAME))
+
+$(TESTAPP_NAME).exe: $(TESTAPP_NAME).lnk print_compiling_info $(TESTAPP_OBJS)
+ @echo * Linking EXE...
+ @wlink @$(TESTAPP_NAME).lnk
+
+print_compiling_info: .symbolic .existsonly
+	@echo * Compiling sources...
+
+.c : .\src
+
+.c.obj : .AUTODEPEND
+	@wcc386 $[* $(cflags)
+        
+$(TESTAPP_NAME).lnk: makefile.$(TESTAPP_NAME)
+ @echo * Creating linker description file...
+ @echo NAME $(TESTAPP_NAME).exe >$^@
+ @echo SYSTEM os2v2 >>$^@
+ @for %i in ($(TESTAPP_OBJS)) do @echo FILE %i >>$^@
+ @echo LIBRARY ..\MMIOCore\mmiocore.lib >>$^@
+ @echo LIBRARY ..\TPL\tpl.lib >>$^@ 
+ @echo OPTION QUIET >>$^@
+ @echo OPTION MAP=$(TESTAPP_NAME).map >>$^@
+ @echo OPTION DESCRIPTION 'Test Application' >>$^@
+ @echo OPTION ELIMINATE >>$^@
+ @echo OPTION MANYAUTODATA >>$^@
+ @echo OPTION OSNAME='OS/2 and eComStation' >>$^@
+ @echo OPTION SHOWDEAD >>$^@
+ @echo * Linker file created.
