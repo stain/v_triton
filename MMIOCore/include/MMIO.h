@@ -117,6 +117,7 @@ typedef int mmioResult_t;
 #define MMIO_STREAMGROUP_EVENT_POSITION_INFO          8
 #define MMIO_STREAMGROUP_EVENT_OUT_OF_DATA           16
 #define MMIO_STREAMGROUP_EVENT_ERROR_IN_STREAM       32
+#define MMIO_STREAMGROUP_EVENT_CLOSE_REQUEST         64
 
 
 /* ------------------------------------------------------------------------ */
@@ -231,6 +232,8 @@ typedef struct mmioAvailablePluginList_s
 #define MMIO_EVENTCODE_OUT_OF_DATA           16
 /* Error in stream: */
 #define MMIO_EVENTCODE_ERROR_IN_STREAM       32
+/* External close request: */
+#define MMIO_EVENTCODE_CLOSE_REQUEST         64
 
 
 /* Element of the EventMessageQueue. Used internally. */
