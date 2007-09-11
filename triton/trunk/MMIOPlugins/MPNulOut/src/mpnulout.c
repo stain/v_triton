@@ -205,14 +205,14 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
 
             tpl_mtxsemRequest(pPluginInstance->hmtxUseRSNode, TPL_WAIT_FOREVER);
 
-//            printf("Worker: Get one frame into buffer at %p (Enter)\n", pBuffer); fflush(stdout);
+            //printf("Worker: Get one frame into buffer at %p (Enter)\n", pBuffer); fflush(stdout);
             rc = pPluginInstance->pRSInfo->mmiors_GetOneFrame(pPluginInstance->pRSInstance,
                                                               pPluginInstance->pRSInfo->pRSID,
                                                               &DataDesc,
                                                               &pBuffer,
                                                               aBufferPool[i].ulBufferSize,
                                                               NULL);
-//            printf("Worker: Get one frame (Leave, rc is %d)\n", rc); fflush(stdout);
+            //printf("Worker: Get one frame (Leave, rc is %d)\n", rc); fflush(stdout);
 
             tpl_mtxsemRelease(pPluginInstance->hmtxUseRSNode);
 
@@ -309,7 +309,7 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
       {
         /* We have a good decoded buffer. */
 
-//        printf("Worker: Got a decoded buffer\n"); fflush(stdout);
+        //printf("Worker: Got a decoded buffer\n"); fflush(stdout);
 
         /* Report the previously sent frame position to PE (now that we know how long it will be displayed)! */
         /* For this, we have to get PTS for this new frame, so we can calculate PTS diff from last frame */
@@ -346,16 +346,21 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
 
         if (pPluginInstance->pRSInfo->iStreamType == MMIO_STREAMTYPE_VIDEO)
         {
+          //printf("Worker: Calculating play time for VIDEO frame (%d / %d)\n", DataDesc.StreamInfo.VideoStruct.iFPSCount, DataDesc.StreamInfo.VideoStruct.iFPSDenom); fflush(stdout);
           ullPicPlayTime = MMIOPsGetOneSecSystemTime();
-          ullPicPlayTime *= DataDesc.StreamInfo.VideoStruct.iFPSDenom * 1000;
+          ullPicPlayTime *= DataDesc.StreamInfo.VideoStruct.iFPSDenom;
+          ullPicPlayTime *= 1000;
           ullDivider = DataDesc.StreamInfo.VideoStruct.iFPSCount;
           ullDivider *= iAbsStreamDirection;
           ullPicPlayTime += ullPicPlayTimeModulo;
           ullPicPlayTimeModulo = ullPicPlayTime % ullDivider;
           ullPicPlayTime /= ullDivider;
+          //printf("Worker: Pic play time for VIDEO frame (%d / %d) is %lld msec\n",
+          //       DataDesc.StreamInfo.VideoStruct.iFPSCount, DataDesc.StreamInfo.VideoStruct.iFPSDenom, ullPicPlayTime / MMIOPsGetOneSecSystemTime()); fflush(stdout);
         } else
         if (pPluginInstance->pRSInfo->iStreamType == MMIO_STREAMTYPE_AUDIO)
         {
+          //printf("Worker: Calculating play time for AUDIO frame\n"); fflush(stdout);
           ullPicPlayTime = MMIOPsGetOneSecSystemTime();
           ullPicPlayTime *= 1000;
           ullPicPlayTime *= DataDesc.StreamInfo.AudioStruct.iSampleRate * ((DataDesc.StreamInfo.AudioStruct.iBits+7)/8);
@@ -372,6 +377,7 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
         }
 
 
+        //printf("Worker: Calculating PTS of new frame\n"); fflush(stdout);
         /* Now calculate the PTS of this new frame! */
         /* If there is PTS info in stream, use that one */
         if ((pPluginInstance->bStreamHasPTS) && (DataDesc.llPTS!=-1))
@@ -386,7 +392,7 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
           /* Store PTS for next frame */
           llNewFramePTS = DataDesc.llPTS;
           llLastFramePTSModulo = 0;
-//          printf("PTS: %d  (old %d)", (int) (DataDesc.llPTS) , (int) (llLastFramePTS));
+          //printf("PTS: %d  (old %d)", (int) (DataDesc.llPTS) , (int) (llLastFramePTS));
         } else
         {
           /* There is no PTS info, so use picture play time to get new PTS info! */
@@ -400,6 +406,7 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
         }
 
 
+        //printf("Worker: Calculating last frame play length\n"); fflush(stdout);
         /* Check for system turn over! */
         bNewFrameShowTimeWithTurnOver = (stNewFrameShowTime < stLastFrameShowTime);
 
@@ -413,7 +420,13 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
                                llLastFramePlayLength,                  /* Length of frame */
                                &llSyncDiff);
 
-//          printf("Reported: PTS: %d, len: %d  (s-diff: %d)\n", (int) llLastFramePTS, (int) llLastFramePlayLength, (int) llSyncDiff);
+          printf("Reported: PTS: %d, len: %d  (s-diff: %d)\n", (int) llLastFramePTS, (int) llLastFramePlayLength, (int) llSyncDiff);
+
+          /* Modify show-time by sync-diff */
+          llSyncDiff *= MMIOPsGetOneSecSystemTime() / 1000;
+          stNewFrameShowTime -= llSyncDiff;
+          /* Re-Check for system turn over! */
+          bNewFrameShowTimeWithTurnOver = (stNewFrameShowTime < stLastFrameShowTime);
         }
 
         /* Now let's wait for the time of the current frame and show it then. */
@@ -423,6 +436,7 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
          but limit this between 2 and 32msecs, to be on the safe side!
          */
 
+        //printf("Worker: Waiting for time of current frame\n"); fflush(stdout);
         stOneTimesliceTime = MMIOPsGetOneSecSystemTime() * TPL_REGULAR_TIMESLICE_MSEC / 1000;
 
         stNow = MMIOPsGetCurrentSystemTime();
@@ -437,13 +451,13 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
           }
         }
 
-        /*
-        printf("%Ld compared to %Ld  is  %d   (One sec is %Ld)\n",
-               stNewFrameShowTime - stNow,
-               stOneTimesliceTime,
-               stNewFrameShowTime - stNow >= stOneTimesliceTime,
-               MMIOPsGetOneSecSystemTime());
-        */
+
+        //printf("%Ld compared to %Ld  is  %d   (One sec is %Ld)\n",
+        //       stNewFrameShowTime - stNow,
+        //       stOneTimesliceTime,
+        //       stNewFrameShowTime - stNow >= stOneTimesliceTime,
+        //       MMIOPsGetOneSecSystemTime());
+
         while (stNow<stNewFrameShowTime)
         {
           if (stNewFrameShowTime - stNow >= stOneTimesliceTime)
@@ -454,13 +468,13 @@ static void MMIOCALL nullout_WorkerThread(void *pParm)
           stNow = MMIOPsGetCurrentSystemTime();
         }
 
-        /*
+
         stNow = MMIOPsGetCurrentSystemTime();
 
-        printf("Diff: %Ld  (One sec is %Ld)\n",
-               stNewFrameShowTime - stNow,
-               MMIOPsGetOneSecSystemTime());
-               */
+        //printf("Diff: %Ld  (One sec is %Ld)\n",
+        //       stNewFrameShowTime - stNow,
+        //       MMIOPsGetOneSecSystemTime());
+
 
         /* Oookay, it's time to show the new frame! */
         /* We're a NULL output plugin, so we simply don't show it, so we're done. */

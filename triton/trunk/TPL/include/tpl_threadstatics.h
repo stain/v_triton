@@ -105,7 +105,9 @@ static TPL_TID   TPLCALL tpl_threadCreate(int               iStackSize,
   pThreadParms->args = pThreadParameter;
 
   /* Start the thread using the runtime library of calling app! */
-  tidResult = _beginthread(internal_tpl_ThreadFunc, NULL, iStackSize, pThreadParms);
+  tidResult = _beginthread(internal_tpl_ThreadFunc,
+                           NULL,
+                           iStackSize, pThreadParms);
 
   if (tidResult==0)
   {

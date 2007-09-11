@@ -11,7 +11,7 @@
 # Change the following if you'll have a new top-level directory, or if the
 # dependency (the order in which the modules have to be built) changes!
 
-Build_Order = MPAOUT MPVOUT MPAVIDem MPFile MPMP3Dem MPMPADec MPNulOut MPGBM
+Build_Order = MPAOUT MPVOUT MPAVIDem MPFile MPMP3Dem MPMPADec MPNulOut MPGBM MPAVCOD
 
 # -----------------------------------------------------------------------------
 

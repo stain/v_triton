@@ -561,8 +561,8 @@ static int ParseStrfChunkData(AviDemuxInstance_p pPluginInstance, unsigned int u
         pPluginInstance->pCurrStreamDesc->bAviStreamFormatFound = 1;
 
         /* Prepare MMIO-specific stream-info structure */
-        if ((pPluginInstance->aviHeader.uiRate == 0) &&
-            (pPluginInstance->aviHeader.uiScale == 0))
+        if ((pPluginInstance->aviHeader.uiRate != 0) &&
+            (pPluginInstance->aviHeader.uiScale != 0))
         {
           /* Use the Scale/Rate value from stream header */
           pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSCount = pPluginInstance->aviHeader.uiRate;
@@ -573,6 +573,7 @@ static int ParseStrfChunkData(AviDemuxInstance_p pPluginInstance, unsigned int u
           pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSCount = pPluginInstance->pCurrStreamDesc->aviStreamHeader.uiRate;
           pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iFPSDenom = pPluginInstance->pCurrStreamDesc->aviStreamHeader.uiScale;
         }
+
         pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iWidth = pPluginInstance->pCurrStreamDesc->formatSpecific.videoFormat.uiWidth;
         pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iHeight = pPluginInstance->pCurrStreamDesc->formatSpecific.videoFormat.uiHeight;
         MMIOPsGuessPixelAspectRatio(pPluginInstance->pCurrStreamDesc->streamInfo.VideoStruct.iWidth,
@@ -863,18 +864,20 @@ static int ParseIdx1ChunkData(AviDemuxInstance_p pPluginInstance, unsigned int u
           AddNewIndexEntry(pPluginInstance, pAviIndexEntries+uiEntryToTry, uiApproximateNumOfIndexEntries);
 
           /*
-          if (iIndexNum<10)
+          if (iIndexNum<100)
           {
             { int i; for (i=0; i<iDepth; i++) printf(" "); }
             printf("  Index-%02d:\n", iIndexNum);
             { int i; for (i=0; i<iDepth; i++) printf(" "); }
-            printf("    uiChunkId     : 0x%08x [%.4s]\n", indexEntry.uiChunkId, (char *) &(indexEntry.uiChunkId));
+            printf("    uiChunkId     : 0x%08x [%.4s]\n",
+                   pAviIndexEntries+uiEntryToTry,
+                   (char *) &(pAviIndexEntries[uiEntryToTry].uiChunkId));
             { int i; for (i=0; i<iDepth; i++) printf(" "); }
-            printf("    uiFlags       : 0x%08x\n", indexEntry.uiFlags);
+            printf("    uiFlags       : 0x%08x\n", pAviIndexEntries[uiEntryToTry].uiFlags);
             { int i; for (i=0; i<iDepth; i++) printf(" "); }
-            printf("    uiChunkOffset : 0x%08x  (%d)\n", indexEntry.uiChunkOffset, indexEntry.uiChunkOffset);
+            printf("    uiChunkOffset : 0x%08x  (%d)\n", pAviIndexEntries[uiEntryToTry].uiChunkOffset, pAviIndexEntries[uiEntryToTry].uiChunkOffset);
             { int i; for (i=0; i<iDepth; i++) printf(" "); }
-            printf("    uiChunkLength : 0x%08x  (%d)\n", indexEntry.uiChunkLength, indexEntry.uiChunkLength);
+            printf("    uiChunkLength : 0x%08x  (%d)\n", pAviIndexEntries[uiEntryToTry].uiChunkLength, pAviIndexEntries[uiEntryToTry].uiChunkLength);
           }
           */
         } else

@@ -75,6 +75,8 @@ typedef struct mmioPluginInstance_s
   int                   iDirection;
   long long             llTimeOffset;
 
+  long long             llNewPosAfterSeek;
+
   audmixInfoBuffer_t    AudMixInfoBuffer;
   audmixClient_p        hAudMixClient;
 
@@ -138,10 +140,10 @@ static void MMIOCALL aout_WorkerThread(void *pParm)
   unsigned int uiBufferSize;
   mmioResult_t rc;
   int arc;
-  long long llFramePTS;
+  long long llFramePTS = 0;
   long long llSampleRate;
-  unsigned long long ullPlayTime;
-  unsigned long long ullPlayTimeModulo;
+  unsigned long long ullPlayTime = 0;
+  unsigned long long ullPlayTimeModulo = 0;
   audmixBufferFormat_t fmtBufferFormat;
   mmioDataDesc_t         DataDesc;
 
@@ -266,12 +268,11 @@ static void MMIOCALL aout_WorkerThread(void *pParm)
           /* wait to reach that PTS from the previous (already displayed) PTS. */
           /* If we don't have PTS info, then we'll use the calculated frame length of the previous frame */
           /* to know how much we have to wait. */
-
-          ullPlayTime = 1000;
-          ullPlayTime *= DataDesc.StreamInfo.AudioStruct.iSampleRate * ((DataDesc.StreamInfo.AudioStruct.iBits+7)/8) * DataDesc.StreamInfo.AudioStruct.iChannels;
+          int iDivider = DataDesc.StreamInfo.AudioStruct.iSampleRate * ((DataDesc.StreamInfo.AudioStruct.iBits+7)/8) * DataDesc.StreamInfo.AudioStruct.iChannels;
+          ullPlayTime = DataDesc.llDataSize * 1000;
           ullPlayTime += ullPlayTimeModulo;
-          ullPlayTimeModulo = ullPlayTime % DataDesc.llDataSize;
-          ullPlayTime /= DataDesc.llDataSize;
+          ullPlayTimeModulo = ullPlayTime % iDivider;
+          ullPlayTime /= iDivider;
 
           /* Now calculate the PTS of this new frame! */
           /* If there is PTS info in stream, use that one */
@@ -284,11 +285,18 @@ static void MMIOCALL aout_WorkerThread(void *pParm)
           {
             /* There is no PTS info, so use picture play time to get new PTS info! */
 
-            /* Calculate PTS for next frame */
-            if (pPluginInstance->iDirection>0)
-              llFramePTS += ullPlayTime;
-            else
-              llFramePTS -= ullPlayTime;
+            if (DataDesc.iExtraStreamInfo & MMIO_EXTRASTREAMINFO_STREAM_DISCONTINUITY)
+            {
+              // There was stream discontinuity, so use the position we got back after seeking */
+              llFramePTS = pPluginInstance->llNewPosAfterSeek;
+            } else
+            {
+              /* Calculate PTS for next frame */
+              if (pPluginInstance->iDirection>0)
+                llFramePTS += ullPlayTime;
+              else
+                llFramePTS -= ullPlayTime;
+            }
           }
 
           /* Send this new audio buffer to Audio Mixer */
@@ -394,7 +402,18 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL aout_SetPosition(void *pInstance, void *p
                                                     pPluginInstance->pRSInfo->pRSID,
                                                     llPos, iPosType, pllPosFound);
 
-  /* TODO: Notify worker that something was changed, the next frame should come right now */
+  if (rc == MMIO_NOERROR)
+  {
+    /* TODO: Notify worker that something was changed, the next frame should come right now */
+    if (iPosType == MMIO_POSTYPE_TIME)
+    {
+      pPluginInstance->llNewPosAfterSeek = *pllPosFound;
+    } else
+    {
+      // TODO:
+      // Implement support for byte stream-positions
+    }
+  }
 
   tpl_mtxsemRelease(pPluginInstance->hmtxUseRSNode);
 
