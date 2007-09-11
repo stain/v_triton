@@ -644,7 +644,7 @@ MMIOPLUGINEXPORT mmioResult_t MMIOCALL mpadecoder_Link(void *pInstance, char *pc
   pRSInfo->iStreamType = MMIO_STREAMTYPE_AUDIO;
 
   /* Our output will probably be this: */
-  /* Our decoder always outputs 16bits unsigned samples */
+  /* Our decoder always outputs 16bits signed samples */
   pRSInfo->StreamInfo.AudioStruct.iBits = 16;
   pRSInfo->StreamInfo.AudioStruct.iIsSigned = 1;
   pRSInfo->StreamInfo.AudioStruct.iChannels = pESInfo->StreamInfo.AudioStruct.iChannels;
