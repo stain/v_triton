@@ -935,7 +935,7 @@ static int internal_StartMixing()
   APIRET rc;
 
   /* Allocate memory for custom mixer code */
-  rc = DosAllocMem(&pMixerCodeArea, 65536, PAG_COMMIT | PAG_EXECUTE | PAG_READ | PAG_WRITE);
+  rc = DosAllocMem((void **) &pMixerCodeArea, 65536, PAG_COMMIT | PAG_EXECUTE | PAG_READ | PAG_WRITE);
 
   /* Initialize DART */
   iTemp = internal_OpenDART(0, /* Default device */
@@ -1291,7 +1291,7 @@ AUDMIXIMPEXP audmixClient_p AUDMIXCALL  AudMixCreateClient(unsigned int uiNumBuf
     return NULL;
 
   /* Allocate shared memory */
-  rc = DosAllocSharedMem(&pResult,
+  rc = DosAllocSharedMem((void **) &pResult,
                          NULL,
                          sizeof(audmixClient_t),
                          PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_ANY | OBJ_GIVEABLE | OBJ_GETTABLE);
@@ -1343,7 +1343,7 @@ AUDMIXIMPEXP audmixClient_p AUDMIXCALL  AudMixCreateClient(unsigned int uiNumBuf
   {
     audmixBufferDesc_p pBuffer;
 
-    rc = DosAllocSharedMem(&pBuffer,
+    rc = DosAllocSharedMem((void **) &pBuffer,
                            NULL,
                            sizeof(audmixBufferDesc_t) + uiBufSize,
                            PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_ANY | OBJ_GETTABLE);
@@ -1514,7 +1514,7 @@ AUDMIXIMPEXP int            AUDMIXCALL  AudMixResizeBuffer(audmixClient_p hClien
       /* Ok, it's a resizable buffer. */
 
       /* So, try to allocate a new buffer instead of this one! */
-      rc = DosAllocSharedMem(&pNewBuffer,
+      rc = DosAllocSharedMem((void **) &pNewBuffer,
                              NULL,
                              sizeof(audmixBufferDesc_t) + uiNewBufSize,
                              PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_ANY | OBJ_GETTABLE);
@@ -1582,7 +1582,7 @@ AUDMIXIMPEXP int            AUDMIXCALL  AudMixAddNewBuffer(audmixClient_p hClien
   }
 
   /* Try to allocate a new buffer! */
-  rc = DosAllocSharedMem(&pNewBuffer,
+  rc = DosAllocSharedMem((void **) &pNewBuffer,
                          NULL,
                          sizeof(audmixBufferDesc_t) + uiBufSize,
                          PAG_READ | PAG_WRITE | PAG_COMMIT | OBJ_ANY | OBJ_GETTABLE);
@@ -2005,7 +2005,7 @@ static void internal_CleanupClient()
   if (!g_bInitialized)
     return;
 
-  while (internal_SendDaemonCommand(AUDMIX_COMMAND_GETCLIENTFORPID, (void *) pidThisProcess, &pOneClient))
+  while (internal_SendDaemonCommand(AUDMIX_COMMAND_GETCLIENTFORPID, (void *) pidThisProcess, (void **) &pOneClient))
     AudMixDestroyClient(pOneClient);
 }
 
