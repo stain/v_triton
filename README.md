@@ -75,7 +75,7 @@ Triton, or to transcode between different supported formats.
 
 ## Starting Points
 
- * A somewhat up to date [wiki:Triton_TODO [ToDo](http://trac.netlabs.org/v_triton/wiki/Triton_TODO) page for Triton
+ * A somewhat up to date [ToDo](http://trac.netlabs.org/v_triton/wiki/Triton_TODO) page for Triton
 
 
 ## Building it
